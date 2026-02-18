@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-4">
+  <h1 class="text-3xl font-bold">Meu Progresso</h1>
+
+  <div class="card bg-base-100 shadow">
+    <div class="card-body space-y-3">
+      <label class="form-control w-full max-w-xs">
+        <span class="label-text">Exercício</span>
+        <select id="exercise-select" class="select select-bordered"></select>
+      </label>
+      <canvas id="progress-chart" height="120"></canvas>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const payload = {{ chart_payload|safe }};
+  const names = Object.keys(payload);
+  const selector = document.getElementById('exercise-select');
+  names.forEach((name) => {
+    const option = document.createElement('option');
+    option.value = name;
+    option.textContent = name;
+    selector.appendChild(option);
+  });
+
+  const chart = new Chart(document.getElementById('progress-chart'), {
+    type: 'line',
+    data: { labels: [], datasets: [{ label: 'Carga (kg)', data: [] }] },
+    options: { responsive: true }
+  });
+
+  function renderExercise(name) {
+    const points = payload[name] || [];
+    chart.data.labels = points.map((point) => point.date);
+    chart.data.datasets[0].data = points.map((point) => point.load);
+    chart.update();
+  }
+
+  if (names.length > 0) {
+    renderExercise(names[0]);
+  }
+
+  selector.addEventListener('change', (event) => renderExercise(event.target.value));
+</script>
+{% endblock %}

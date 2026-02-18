@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-2xl card bg-base-100 shadow">
+  <div class="card-body">
+    <h1 class="card-title">Novo Treino</h1>
+    <form method="post" class="space-y-3">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="btn btn-primary" type="submit">Salvar treino</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

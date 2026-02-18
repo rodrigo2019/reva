@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-4">
+  <div class="flex justify-between items-center">
+    <h1 class="text-3xl font-bold">Gestão de Treinos</h1>
+    <a class="btn btn-primary" href="{% url 'workout-create' %}">Novo Treino</a>
+  </div>
+
+  <div class="grid gap-3">
+    {% for workout in workouts %}
+      <a href="{% url 'workout-detail' workout.pk %}" class="card bg-base-100 shadow hover:shadow-md transition">
+        <div class="card-body">
+          <h2 class="card-title">{{ workout.name }}</h2>
+          <p>Aluno: {{ workout.athlete.user.get_full_name|default:workout.athlete.user.username }}</p>
+          <p>Objetivo: {{ workout.objective|default:'-' }}</p>
+        </div>
+      </a>
+    {% empty %}
+      <div class="alert">Nenhum treino cadastrado ainda.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-br" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REVA</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-base-200 min-h-screen">
+  <div class="navbar bg-base-100 shadow-sm px-6">
+    <div class="flex-1">
+      <a href="{% url 'landing' %}" class="text-xl font-bold">REVA</a>
+    </div>
+    <div class="flex-none gap-2">
+      {% if request.user.is_authenticated %}
+        {% if request.user.is_trainer %}
+          <a class="btn btn-ghost" href="{% url 'trainer-dashboard' %}">Painel</a>
+          <a class="btn btn-ghost" href="{% url 'workout-list' %}">Treinos</a>
+        {% else %}
+          <a class="btn btn-ghost" href="{% url 'student-dashboard' %}">Painel</a>
+          <a class="btn btn-ghost" href="{% url 'my-progress' %}">Meu Progresso</a>
+          <a class="btn btn-ghost" href="{% url 'ai-chat' %}">Chat IA</a>
+        {% endif %}
+        <a class="btn btn-outline" href="{% url 'logout' %}">Sair</a>
+      {% else %}
+        <a class="btn btn-primary" href="{% url 'login' %}">Login</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <main class="max-w-6xl mx-auto p-6">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-info mb-4">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

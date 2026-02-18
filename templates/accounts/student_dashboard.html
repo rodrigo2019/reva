@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-4">
+  <h1 class="text-3xl font-bold">Painel do Aluno</h1>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="card bg-base-100 shadow">
+      <div class="card-body">
+        <h2 class="card-title">Meu Progresso</h2>
+        <p>Acompanhe sua evolução de cargas por exercício.</p>
+        <a class="btn btn-primary" href="{% url 'my-progress' %}">Ver Progresso</a>
+      </div>
+    </div>
+    <div class="card bg-base-100 shadow">
+      <div class="card-body">
+        <h2 class="card-title">Chat IA</h2>
+        <p>Tire dúvidas rápidas com contexto do seu histórico de treino.</p>
+        <a class="btn btn-secondary" href="{% url 'ai-chat' %}">Abrir Chat</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

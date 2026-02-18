@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-4">
+  <h1 class="text-3xl font-bold">Chat IA</h1>
+
+  <div class="card bg-base-100 shadow">
+    <div class="card-body space-y-3 max-h-[420px] overflow-y-auto">
+      {% for msg in messages %}
+        <div class="chat {% if msg.role == 'assistant' %}chat-start{% else %}chat-end{% endif %}">
+          <div class="chat-bubble {% if msg.role == 'assistant' %}chat-bubble-primary{% else %}chat-bubble-secondary{% endif %}">
+            {{ msg.content }}
+          </div>
+        </div>
+      {% empty %}
+        <p>Nenhuma mensagem ainda. Faça sua primeira pergunta.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <form method="post" action="{% url 'ai-chat-send' %}" class="flex gap-2">
+    {% csrf_token %}
+    <input class="input input-bordered flex-1" name="question" placeholder="Ex: Posso aumentar carga no supino?" required>
+    <button class="btn btn-primary" type="submit">Enviar</button>
+  </form>
+</div>
+{% endblock %}

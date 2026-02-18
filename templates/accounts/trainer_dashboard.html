@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-4">
+  <h1 class="text-3xl font-bold">Painel do Treinador</h1>
+  <div class="card bg-base-100 shadow">
+    <div class="card-body">
+      <p>Gerencie seus alunos e treinos ativos.</p>
+      <div class="card-actions">
+        <a class="btn btn-primary" href="{% url 'workout-list' %}">Ir para Gestão de Treinos</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
