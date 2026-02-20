@@ -17,7 +17,7 @@ class ChatView(LoginRequiredMixin, StudentRequiredMixin, TemplateView):
 
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
-		profile = self.request.user.athlete_profile
+		profile = self.request.user.get_athlete_profile()
 		session, _ = ChatSession.objects.get_or_create(athlete=profile)
 		context["session"] = session
 		context["messages"] = session.messages.all()
@@ -30,7 +30,7 @@ class ChatMessageCreateView(LoginRequiredMixin, StudentRequiredMixin, View):
 		if not question:
 			return redirect("ai-chat")
 
-		profile = request.user.athlete_profile
+		profile = request.user.get_athlete_profile()
 		session, _ = ChatSession.objects.get_or_create(athlete=profile)
 		ChatMessage.objects.create(session=session, role=ChatMessage.Role.USER, content=question)
 

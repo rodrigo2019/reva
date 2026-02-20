@@ -2,6 +2,9 @@ from django.urls import path
 
 from .views import (
     ExerciseCreateView,
+    ExerciseDeleteView,
+    ExerciseProgressDataView,
+    ExerciseUpdateView,
     UpdateExerciseLoadView,
     WorkoutPlanCreateView,
     WorkoutPlanDetailView,
@@ -17,5 +20,20 @@ urlpatterns = [
         "<int:workout_pk>/exercicios/<int:exercise_pk>/carga/",
         UpdateExerciseLoadView.as_view(),
         name="exercise-load-update",
+    ),
+    path(
+        "<int:workout_pk>/exercicios/<int:exercise_pk>/editar/",
+        ExerciseUpdateView.as_view(),
+        name="exercise-update",
+    ),
+    path(
+        "<int:workout_pk>/exercicios/<int:exercise_pk>/excluir/",
+        ExerciseDeleteView.as_view(),
+        name="exercise-delete",
+    ),
+    path(
+        "<int:workout_pk>/exercicios/<int:exercise_pk>/progresso/",
+        ExerciseProgressDataView.as_view(),
+        name="exercise-progress-data",
     ),
 ]

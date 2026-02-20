@@ -1,15 +1,105 @@
 {% extends 'base.html' %}
+{% block title %}Painel — REVA{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
 
 {% block content %}
-<div class="space-y-4">
-  <h1 class="text-3xl font-bold">Painel do Treinador</h1>
-  <div class="card bg-base-100 shadow">
-    <div class="card-body">
-      <p>Gerencie seus alunos e treinos ativos.</p>
-      <div class="card-actions">
-        <a class="btn btn-primary" href="{% url 'workout-list' %}">Ir para Gestão de Treinos</a>
+<div class="mb-6">
+  <h1 class="text-3xl font-extrabold">Painel do Treinador</h1>
+  <p class="opacity-50 mt-1">Visão geral dos seus alunos e treinos.</p>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+  <div class="stat bg-base-100 rounded-2xl border border-base-300">
+    <div class="stat-title">Alunos</div>
+    <div class="stat-value text-primary">{{ athlete_count }}</div>
+  </div>
+  <div class="stat bg-base-100 rounded-2xl border border-base-300">
+    <div class="stat-title">Treinos criados</div>
+    <div class="stat-value">{{ workout_count }}</div>
+  </div>
+  <div class="stat bg-base-100 rounded-2xl border border-base-300">
+    <div class="stat-title">Treinos ativos</div>
+    <div class="stat-value text-success">{{ active_workout_count }}</div>
+  </div>
+  <div class="stat bg-base-100 rounded-2xl border border-base-300">
+    <div class="stat-title">Atualizações</div>
+    <div class="stat-value text-secondary">{{ recent_updates|length }}</div>
+  </div>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-6">
+
+  <!-- Alunos -->
+  <div class="lg:col-span-1">
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="font-bold text-lg">Alunos</h2>
+        <span class="badge badge-ghost">{{ athlete_count }}</span>
+      </div>
+      {% for athlete in athletes %}
+        <div class="flex items-center gap-3 py-2 {% if not forloop.last %}border-b border-base-300{% endif %}">
+          <div class="avatar placeholder">
+            <div class="bg-primary text-primary-content w-9 rounded-full">
+              <span class="text-xs font-bold">{{ athlete.user.username|make_list|first|upper }}</span>
+            </div>
+          </div>
+          <div class="leading-tight">
+            <p class="font-semibold text-sm">{{ athlete.user.get_full_name|default:athlete.user.username }}</p>
+            <p class="text-xs opacity-40">Desde {{ athlete.created_at|date:"d/m/Y" }}</p>
+          </div>
+        </div>
+      {% empty %}
+        <p class="text-sm opacity-50">Nenhum aluno vinculado.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Atividade recente -->
+  <div class="lg:col-span-2">
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="font-bold text-lg">Atividade recente</h2>
+        <a href="{% url 'workout-list' %}" class="btn btn-ghost btn-sm">Ver treinos</a>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Exercício</th>
+              <th>Aluno</th>
+              <th>Carga anterior</th>
+              <th>Nova carga</th>
+              <th>Data</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for update in recent_updates %}
+              <tr>
+                <td class="font-medium">{{ update.exercise.name }}</td>
+                <td>{{ update.exercise.workout.athlete.user.get_full_name|default:update.exercise.workout.athlete.user.username }}</td>
+                <td>{{ update.previous_load_kg|default:"-" }} kg</td>
+                <td class="font-semibold text-success">{{ update.new_load_kg }} kg</td>
+                <td class="opacity-50">{{ update.created_at|date:"d/m H:i" }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="5" class="text-center opacity-50">Nenhuma atualização de carga registrada.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
+
+</div>
+
+<!-- Quick actions -->
+<div class="mt-6 flex gap-3">
+  <a href="{% url 'workout-create' %}" class="btn btn-primary">
+    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    Novo Treino
+  </a>
+  <a href="{% url 'workout-list' %}" class="btn btn-ghost">Ver todos os treinos</a>
 </div>
 {% endblock %}

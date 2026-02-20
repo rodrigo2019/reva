@@ -22,6 +22,14 @@ class ExerciseForm(forms.ModelForm):
         fields = ["name", "sets", "reps", "current_load_kg", "rest_seconds", "exercise_order", "notes"]
 
 
+class ExerciseUpdateForm(forms.ModelForm):
+    """Form for updating all tracked fields of an exercise."""
+
+    class Meta:
+        model = ExercisePrescription
+        fields = ["name", "sets", "reps", "current_load_kg", "rest_seconds", "notes"]
+
+
 class LoadUpdateForm(forms.Form):
     new_load_kg = forms.DecimalField(max_digits=6, decimal_places=2, min_value=0)
     reason = forms.CharField(required=False, max_length=255)

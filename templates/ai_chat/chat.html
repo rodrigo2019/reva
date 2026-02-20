@@ -1,27 +1,78 @@
 {% extends 'base.html' %}
+{% block title %}Chat IA — REVA{% endblock %}
+{% block nav_chat %}active{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto space-y-4">
-  <h1 class="text-3xl font-bold">Chat IA</h1>
+<div class="mb-6">
+  <h1 class="text-3xl font-extrabold">Chat IA</h1>
+  <p class="opacity-50 mt-1">Tire dúvidas sobre treino, nutrição e progressão com a inteligência artificial.</p>
+</div>
 
-  <div class="card bg-base-100 shadow">
-    <div class="card-body space-y-3 max-h-[420px] overflow-y-auto">
-      {% for msg in messages %}
-        <div class="chat {% if msg.role == 'assistant' %}chat-start{% else %}chat-end{% endif %}">
-          <div class="chat-bubble {% if msg.role == 'assistant' %}chat-bubble-primary{% else %}chat-bubble-secondary{% endif %}">
+<div class="bg-base-100 rounded-2xl border border-base-300 flex flex-col" style="height:calc(100vh - 220px);min-height:400px;">
+
+  <!-- messages area -->
+  <div id="chat-messages" class="flex-1 overflow-y-auto p-5 space-y-4">
+    {% for msg in messages %}
+      {% if msg.role == 'user' %}
+        <div class="flex justify-end">
+          <div class="max-w-[75%] bg-primary text-primary-content rounded-2xl rounded-br-sm px-4 py-3 text-sm leading-relaxed">
             {{ msg.content }}
           </div>
         </div>
-      {% empty %}
-        <p>Nenhuma mensagem ainda. Faça sua primeira pergunta.</p>
-      {% endfor %}
-    </div>
+      {% else %}
+        <div class="flex justify-start gap-3">
+          <div class="w-8 h-8 rounded-full bg-secondary text-secondary-content flex items-center justify-center text-xs font-bold shrink-0 mt-1">IA</div>
+          <div class="max-w-[75%] bg-base-200 rounded-2xl rounded-bl-sm px-4 py-3 text-sm leading-relaxed">
+            {{ msg.content }}
+          </div>
+        </div>
+      {% endif %}
+    {% empty %}
+      <div class="flex flex-col items-center justify-center h-full opacity-40 text-center">
+        <svg class="w-16 h-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16h6M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+        <p class="font-semibold text-lg">Olá! Sou a IA da REVA</p>
+        <p class="text-sm mt-1 max-w-sm">Pergunte sobre progressão de carga, técnicas de exercícios ou qualquer dúvida sobre seu treino.</p>
+
+        <div class="flex flex-wrap gap-2 mt-6 justify-center">
+          <button type="button" class="suggestion-chip btn btn-sm btn-outline btn-primary rounded-full">Posso aumentar carga no supino?</button>
+          <button type="button" class="suggestion-chip btn btn-sm btn-outline btn-secondary rounded-full">Qual a melhor série para hipertrofia?</button>
+          <button type="button" class="suggestion-chip btn btn-sm btn-outline btn-accent rounded-full">Devo mudar de treino?</button>
+        </div>
+      </div>
+    {% endfor %}
   </div>
 
-  <form method="post" action="{% url 'ai-chat-send' %}" class="flex gap-2">
-    {% csrf_token %}
-    <input class="input input-bordered flex-1" name="question" placeholder="Ex: Posso aumentar carga no supino?" required>
-    <button class="btn btn-primary" type="submit">Enviar</button>
-  </form>
+  <!-- input area -->
+  <div class="border-t border-base-300 p-4">
+    <form method="post" action="{% url 'ai-chat-send' %}" class="flex gap-3 items-end" id="chat-form">
+      {% csrf_token %}
+      <input
+        id="chat-input"
+        class="input w-full"
+        name="question"
+        placeholder="Digite sua pergunta..."
+        required
+        autocomplete="off"
+      >
+      <button class="btn btn-primary btn-square" type="submit" title="Enviar">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 0l-7 7m7-7l7 7"/></svg>
+      </button>
+    </form>
+  </div>
 </div>
+
+<script>
+  // auto-scroll to bottom
+  const chat = document.getElementById('chat-messages');
+  chat.scrollTop = chat.scrollHeight;
+
+  // suggestion chips fill input
+  document.querySelectorAll('.suggestion-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = document.getElementById('chat-input');
+      input.value = btn.textContent.trim();
+      input.focus();
+    });
+  });
+</script>
 {% endblock %}

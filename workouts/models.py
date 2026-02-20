@@ -24,6 +24,9 @@ class WorkoutPlan(models.Model):
 		return reverse("workout-detail", kwargs={"pk": self.pk})
 
 
+TRACKED_FIELDS = ("sets", "reps", "current_load_kg", "rest_seconds")
+
+
 class ExercisePrescription(models.Model):
 	workout = models.ForeignKey(WorkoutPlan, on_delete=models.CASCADE, related_name="exercises")
 	name = models.CharField(max_length=120)
@@ -39,18 +42,39 @@ class ExercisePrescription(models.Model):
 		unique_together = ("workout", "exercise_order")
 
 	def save(self, *args, **kwargs):
-		previous_load = None
 		is_create = self.pk is None
+		previous = None
+
 		if not is_create:
-			previous_load = (
-				ExercisePrescription.objects.filter(pk=self.pk).values_list("current_load_kg", flat=True).first()
+			previous = (
+				ExercisePrescription.objects.filter(pk=self.pk)
+				.values(*TRACKED_FIELDS)
+				.first()
 			)
 
 		super().save(*args, **kwargs)
 
+		# Determine if any tracked field changed
+		should_log = is_create
+		if previous and not is_create:
+			should_log = any(
+				previous[field] != getattr(self, field) for field in TRACKED_FIELDS
+			)
+
+		if should_log:
+			ExerciseProgressLog.objects.create(
+				exercise=self,
+				sets=self.sets,
+				reps=self.reps,
+				load_kg=self.current_load_kg,
+				rest_seconds=self.rest_seconds,
+				notes=self.notes,
+			)
+
+		# Backward-compat: also create LoadUpdate when load changes
+		previous_load = previous["current_load_kg"] if previous else None
 		load_changed = previous_load != self.current_load_kg
-		should_create_history = self.current_load_kg is not None and (is_create or load_changed)
-		if should_create_history:
+		if self.current_load_kg is not None and (is_create or load_changed):
 			LoadUpdate.objects.create(
 				exercise=self,
 				previous_load_kg=previous_load,
@@ -75,3 +99,21 @@ class LoadUpdate(models.Model):
 
 	def __str__(self):
 		return f"{self.exercise.name}: {self.new_load_kg} kg"
+
+
+class ExerciseProgressLog(models.Model):
+	"""Snapshot of all exercise parameters every time a change is made."""
+	exercise = models.ForeignKey(ExercisePrescription, on_delete=models.CASCADE, related_name="progress_logs")
+	sets = models.PositiveSmallIntegerField()
+	reps = models.CharField(max_length=30)
+	load_kg = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	rest_seconds = models.PositiveIntegerField()
+	notes = models.CharField(max_length=255, blank=True)
+	updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		ordering = ["-created_at"]
+
+	def __str__(self):
+		return f"{self.exercise.name}: {self.sets}x{self.reps} @ {self.load_kg or 0}kg"

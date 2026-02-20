@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import ExercisePrescription, LoadUpdate, WorkoutPlan
+from .models import ExercisePrescription, ExerciseProgressLog, LoadUpdate, WorkoutPlan
 
 
 @admin.register(WorkoutPlan)
@@ -10,11 +10,16 @@ class WorkoutPlanAdmin(admin.ModelAdmin):
 
 @admin.register(ExercisePrescription)
 class ExercisePrescriptionAdmin(admin.ModelAdmin):
-	list_display = ("name", "workout", "current_load_kg", "exercise_order")
+	list_display = ("name", "workout", "sets", "reps", "current_load_kg", "rest_seconds", "exercise_order")
 
 
 @admin.register(LoadUpdate)
 class LoadUpdateAdmin(admin.ModelAdmin):
 	list_display = ("exercise", "previous_load_kg", "new_load_kg", "created_at")
 
-# Register your models here.
+
+@admin.register(ExerciseProgressLog)
+class ExerciseProgressLogAdmin(admin.ModelAdmin):
+	list_display = ("exercise", "sets", "reps", "load_kg", "rest_seconds", "created_at")
+	list_filter = ("exercise__workout",)
+	ordering = ("-created_at",)

@@ -16,7 +16,7 @@ class StudentProgressView(LoginRequiredMixin, StudentRequiredMixin, TemplateView
 
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
-		profile = self.request.user.athlete_profile
+		profile = self.request.user.get_athlete_profile()
 		exercises = ExercisePrescription.objects.filter(workout__athlete=profile).prefetch_related("load_updates")
 
 		chart_payload = {}

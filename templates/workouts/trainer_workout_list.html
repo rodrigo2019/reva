@@ -1,24 +1,52 @@
 {% extends 'base.html' %}
+{% block title %}Treinos — REVA{% endblock %}
+{% block nav_workouts %}active{% endblock %}
 
 {% block content %}
-<div class="space-y-4">
-  <div class="flex justify-between items-center">
-    <h1 class="text-3xl font-bold">Gestão de Treinos</h1>
-    <a class="btn btn-primary" href="{% url 'workout-create' %}">Novo Treino</a>
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+  <div>
+    <h1 class="text-3xl font-extrabold">Treinos</h1>
+    <p class="opacity-50 mt-1">Gerencie os treinos dos seus alunos.</p>
   </div>
+  <a class="btn btn-primary gap-2" href="{% url 'workout-create' %}">
+    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    Novo Treino
+  </a>
+</div>
 
-  <div class="grid gap-3">
-    {% for workout in workouts %}
-      <a href="{% url 'workout-detail' workout.pk %}" class="card bg-base-100 shadow hover:shadow-md transition">
-        <div class="card-body">
-          <h2 class="card-title">{{ workout.name }}</h2>
-          <p>Aluno: {{ workout.athlete.user.get_full_name|default:workout.athlete.user.username }}</p>
-          <p>Objetivo: {{ workout.objective|default:'-' }}</p>
+<div class="grid gap-4">
+  {% for workout in workouts %}
+    <a href="{% url 'workout-detail' workout.pk %}" class="bg-base-100 rounded-2xl border border-base-300 p-5 flex items-center gap-5 hover:border-primary transition group">
+      <div class="avatar placeholder">
+        <div class="bg-primary text-primary-content w-12 rounded-xl">
+          <span class="text-lg font-bold">{{ workout.athlete.user.username|make_list|first|upper }}</span>
         </div>
-      </a>
-    {% empty %}
-      <div class="alert">Nenhum treino cadastrado ainda.</div>
-    {% endfor %}
-  </div>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="font-bold text-lg group-hover:text-primary transition truncate">{{ workout.name }}</p>
+        <p class="text-sm opacity-50">{{ workout.athlete.user.get_full_name|default:workout.athlete.user.username }}</p>
+      </div>
+      <div class="hidden sm:flex flex-col items-end gap-1">
+        {% if workout.objective %}
+          <span class="badge badge-ghost badge-sm">{{ workout.objective|truncatechars:28 }}</span>
+        {% endif %}
+        {% if workout.is_active %}
+          <span class="badge badge-success badge-sm gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-success-content inline-block"></span>Ativo
+          </span>
+        {% else %}
+          <span class="badge badge-ghost badge-sm">Inativo</span>
+        {% endif %}
+      </div>
+      <svg class="w-5 h-5 opacity-30 group-hover:opacity-70 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    </a>
+  {% empty %}
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-10 text-center">
+      <svg class="w-12 h-12 mx-auto opacity-20 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      <p class="font-semibold mb-1">Nenhum treino cadastrado</p>
+      <p class="text-sm opacity-50 mb-4">Crie o primeiro treino para começar a acompanhar evolução.</p>
+      <a class="btn btn-primary btn-sm" href="{% url 'workout-create' %}">Criar primeiro treino</a>
+    </div>
+  {% endfor %}
 </div>
 {% endblock %}

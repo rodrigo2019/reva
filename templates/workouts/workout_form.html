@@ -1,13 +1,48 @@
 {% extends 'base.html' %}
+{% block title %}Novo Treino — REVA{% endblock %}
+{% block nav_workouts %}active{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl card bg-base-100 shadow">
-  <div class="card-body">
-    <h1 class="card-title">Novo Treino</h1>
-    <form method="post" class="space-y-3">
+<div class="mb-6">
+  <a href="{% url 'workout-list' %}" class="text-sm opacity-50 hover:opacity-80 transition inline-flex items-center gap-1 mb-2">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    Voltar para treinos
+  </a>
+  <h1 class="text-3xl font-extrabold">Novo Treino</h1>
+  <p class="opacity-50 mt-1">Preencha os dados para criar um treino para o aluno.</p>
+</div>
+
+<div class="max-w-2xl">
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-6">
+    <form method="post" class="space-y-4">
       {% csrf_token %}
-      {{ form.as_p }}
-      <button class="btn btn-primary" type="submit">Salvar treino</button>
+
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Aluno</legend>
+        <select class="select w-full" name="athlete" required>
+          <option value="" disabled {% if not form.initial.athlete %}selected{% endif %}>Selecione o aluno</option>
+          {% for option in form.athlete.field.queryset %}
+            <option value="{{ option.pk }}" {% if form.initial.athlete == option.pk %}selected{% endif %}>{{ option.user.get_full_name|default:option.user.username }}</option>
+          {% endfor %}
+        </select>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Nome do treino</legend>
+        <input class="input w-full" type="text" name="name" placeholder="ex: Treino A — Superior" required>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Objetivo</legend>
+        <input class="input w-full" type="text" name="objective" placeholder="ex: Hipertrofia de membros superiores">
+      </fieldset>
+
+      <label class="flex items-center gap-3 cursor-pointer">
+        <input class="toggle toggle-primary" type="checkbox" name="is_active" checked>
+        <span class="label-text">Treino ativo</span>
+      </label>
+
+      <button class="btn btn-primary btn-block" type="submit">Criar treino</button>
     </form>
   </div>
 </div>

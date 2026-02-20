@@ -1,23 +1,71 @@
 {% extends 'base.html' %}
+{% block title %}Painel — REVA{% endblock %}
+{% block nav_student_dashboard %}active{% endblock %}
 
 {% block content %}
-<div class="space-y-4">
-  <h1 class="text-3xl font-bold">Painel do Aluno</h1>
-  <div class="grid md:grid-cols-2 gap-4">
-    <div class="card bg-base-100 shadow">
-      <div class="card-body">
-        <h2 class="card-title">Meu Progresso</h2>
-        <p>Acompanhe sua evolução de cargas por exercício.</p>
-        <a class="btn btn-primary" href="{% url 'my-progress' %}">Ver Progresso</a>
-      </div>
-    </div>
-    <div class="card bg-base-100 shadow">
-      <div class="card-body">
-        <h2 class="card-title">Chat IA</h2>
-        <p>Tire dúvidas rápidas com contexto do seu histórico de treino.</p>
-        <a class="btn btn-secondary" href="{% url 'ai-chat' %}">Abrir Chat</a>
-      </div>
-    </div>
+<div class="mb-6">
+  <h1 class="text-3xl font-extrabold">Olá, {{ request.user.first_name|default:request.user.username }}!</h1>
+  <p class="opacity-50 mt-1">Acompanhe seus treinos, evolução e converse com a IA.</p>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+  <div class="stat bg-base-100 rounded-2xl border border-base-300">
+    <div class="stat-title">Treinos ativos</div>
+    <div class="stat-value text-primary">{{ workout_count }}</div>
   </div>
+  <div class="stat bg-base-100 rounded-2xl border border-base-300">
+    <div class="stat-title">Exercícios</div>
+    <div class="stat-value">{{ exercise_count }}</div>
+  </div>
+  <div class="stat bg-base-100 rounded-2xl border border-base-300 col-span-2 lg:col-span-1">
+    <div class="stat-title">Atualizações de carga</div>
+    <div class="stat-value text-success">{{ recent_updates|length }}</div>
+  </div>
+</div>
+
+<!-- Quick-access cards -->
+<div class="grid md:grid-cols-2 gap-5 mb-8">
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-6 flex flex-col justify-between">
+    <div>
+      <div class="flex items-center gap-2 mb-3">
+        <svg class="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+        <h2 class="font-bold text-lg">Meu Progresso</h2>
+      </div>
+      <p class="opacity-60 text-sm mb-4">Acompanhe a evolução de carga por exercício em gráficos temporais.</p>
+    </div>
+    <a class="btn btn-primary btn-block" href="{% url 'my-progress' %}">Ver Progresso</a>
+  </div>
+
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-6 flex flex-col justify-between">
+    <div>
+      <div class="flex items-center gap-2 mb-3">
+        <svg class="w-6 h-6 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+        <h2 class="font-bold text-lg">Chat IA</h2>
+      </div>
+      <p class="opacity-60 text-sm mb-4">Tire dúvidas sobre seu treino com respostas baseadas no seu histórico real.</p>
+    </div>
+    <a class="btn btn-secondary btn-block" href="{% url 'ai-chat' %}">Abrir Chat</a>
+  </div>
+</div>
+
+<!-- Recent updates -->
+<div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+  <h2 class="font-bold text-lg mb-4">Últimas atualizações de carga</h2>
+  {% for update in recent_updates %}
+    <div class="flex items-center justify-between py-3 {% if not forloop.last %}border-b border-base-300{% endif %}">
+      <div>
+        <p class="font-semibold text-sm">{{ update.exercise.name }}</p>
+        <p class="text-xs opacity-40">{{ update.created_at|date:"d/m/Y" }}</p>
+      </div>
+      <div class="text-right">
+        <span class="opacity-40">{{ update.previous_load_kg|default:"–" }}kg</span>
+        <span class="mx-1">→</span>
+        <span class="font-bold text-success">{{ update.new_load_kg }}kg</span>
+      </div>
+    </div>
+  {% empty %}
+    <p class="text-sm opacity-50">Nenhuma atualização registrada ainda.</p>
+  {% endfor %}
 </div>
 {% endblock %}

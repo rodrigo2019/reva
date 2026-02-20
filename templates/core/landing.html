@@ -1,212 +1,171 @@
-{% extends 'base.html' %}
+{% load static %}
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>REVA | Acompanhamento com IA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/landing.css' %}">
+</head>
+<body>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
 
-{% block content %}
-<div class="space-y-10">
-  <section class="hero bg-base-100 rounded-box shadow-xl overflow-hidden">
-    <div class="hero-content flex-col lg:flex-row-reverse gap-8 p-0">
-      <img
-        src="https://images.unsplash.com/photo-1599058918144-1ffabb6ab9a0?auto=format&fit=crop&w=900&q=80"
-        alt="Treinadora acompanhando aluna durante treino"
-        class="w-full lg:w-1/2 h-80 lg:h-[34rem] object-cover"
-      />
-      <div class="p-8 lg:p-12 lg:w-1/2">
-        <div class="badge badge-primary badge-outline mb-4">Acompanhamento Premium</div>
-        <h1 class="text-4xl lg:text-5xl font-black leading-tight">
-          Evolução real, visível e mensurável em cada treino.
+  <header class="lp-header container">
+    <a href="{% url 'landing' %}" class="brand">REVA</a>
+    <nav class="lp-nav">
+      <a href="#metodo">Metodologia</a>
+      <a href="#resultados">Resultados</a>
+      <a href="#depoimentos">Depoimentos</a>
+    </nav>
+    <a href="{% url 'login' %}" class="btn btn-sm">Entrar</a>
+  </header>
+
+  <main>
+    <section class="hero container">
+      <div class="hero-copy">
+        <span class="tag">Acompanhamento premium com IA</span>
+        <h1>
+          Seu treino deixa de ser “sensação”
+          <span>e vira evolução comprovada.</span>
         </h1>
-        <p class="py-6 text-base-content/80 text-lg">
-          Com metodologia da treinadora <strong>Camila Rocha</strong>, você acompanha cargas, progresso e consistência com clareza.
-          Menos achismo, mais resultado.
+        <p>
+          Com o método da treinadora Camila Rocha, você acompanha sua progressão de carga, recebe ajustes estratégicos e mantém constância com clareza.
         </p>
-        <div class="flex flex-wrap gap-3">
-          <a href="{% url 'login' %}" class="btn btn-primary btn-lg">Quero acessar</a>
-          <a href="#metodologia" class="btn btn-outline btn-lg">Conhecer metodologia</a>
+        <div class="hero-actions">
+          <a href="{% url 'login' %}" class="btn btn-lg">Começar agora</a>
+          <a href="#metodo" class="btn-outline btn-lg">Ver metodologia</a>
         </div>
-        <div class="stats stats-vertical lg:stats-horizontal shadow mt-8 bg-base-200 w-full">
-          <div class="stat">
-            <div class="stat-title">Alunos Ativos</div>
-            <div class="stat-value text-primary">120+</div>
+        <div class="metrics">
+          <article>
+            <strong>+320</strong>
+            <span>alunas acompanhadas</span>
+          </article>
+          <article>
+            <strong>+18%</strong>
+            <span>média de evolução de carga</span>
+          </article>
+          <article>
+            <strong>92%</strong>
+            <span>retenção após 12 semanas</span>
+          </article>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <img src="https://images.unsplash.com/photo-1594737625785-a6cbdabd333c?auto=format&fit=crop&w=1000&q=80" alt="Treinadora orientando treino">
+        <div class="floating-card">
+          <h3>Camila Rocha</h3>
+          <p>Personal Trainer • CREF 000000-G/SP</p>
+          <small>Especialista em hipertrofia e performance feminina</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="highlights container">
+      <article class="glass-card">
+        <h3>Prescrição com método</h3>
+        <p>Treino estruturado por fase, objetivo e contexto da aluna.</p>
+      </article>
+      <article class="glass-card">
+        <h3>Histórico automático</h3>
+        <p>Cada ajuste de carga fica registrado para mostrar evolução real.</p>
+      </article>
+      <article class="glass-card">
+        <h3>IA contextualizada</h3>
+        <p>Dúvidas respondidas com base no seu histórico de treino e progresso.</p>
+      </article>
+    </section>
+
+    <section id="metodo" class="method container">
+      <div class="section-title">
+        <span>Metodologia</span>
+        <h2>Como o acompanhamento funciona na prática</h2>
+      </div>
+      <div class="timeline">
+        <article>
+          <b>1. Diagnóstico Inicial</b>
+          <p>Objetivo, rotina, histórico de treino e nível atual.</p>
+        </article>
+        <article>
+          <b>2. Planejamento Individual</b>
+          <p>Estrutura de treino personalizada para seu momento.</p>
+        </article>
+        <article>
+          <b>3. Ajustes Semanais</b>
+          <p>Atualização de carga e volume baseada em performance real.</p>
+        </article>
+        <article>
+          <b>4. Evolução Mensurável</b>
+          <p>Gráficos e histórico para visualizar o que realmente avançou.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="resultados" class="results container">
+      <div class="section-title">
+        <span>Resultados mockados</span>
+        <h2>Evoluções reais de alunas em acompanhamento</h2>
+      </div>
+      <div class="result-grid">
+        <article class="result-card">
+          <img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=900&q=80" alt="Aluna em treino guiado">
+          <div>
+            <h4>Mariana, 31 anos</h4>
+            <p>Agachamento: 40kg → 62kg em 14 semanas</p>
+            <span>+55%</span>
           </div>
-          <div class="stat">
-            <div class="stat-title">Evolução média</div>
-            <div class="stat-value text-secondary">+18%</div>
+        </article>
+        <article class="result-card">
+          <img src="https://images.unsplash.com/photo-1534258936925-c58bed479fcb?auto=format&fit=crop&w=900&q=80" alt="Treino de força com barra">
+          <div>
+            <h4>Renata, 27 anos</h4>
+            <p>Levantamento terra: 55kg → 80kg em 16 semanas</p>
+            <span>+45%</span>
           </div>
-          <div class="stat">
-            <div class="stat-title">Retenção</div>
-            <div class="stat-value text-accent">92%</div>
+        </article>
+        <article class="result-card">
+          <img src="https://images.unsplash.com/photo-1579758629938-03607ccdbaba?auto=format&fit=crop&w=900&q=80" alt="Aluna executando supino">
+          <div>
+            <h4>Aline, 35 anos</h4>
+            <p>Supino reto: 22kg → 34kg em 12 semanas</p>
+            <span>+54%</span>
           </div>
-        </div>
+        </article>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="grid lg:grid-cols-3 gap-5">
-    <div class="card bg-base-100 shadow-lg border border-base-300">
-      <div class="card-body">
-        <h2 class="card-title text-primary">Planejamento Inteligente</h2>
-        <p>Treino estruturado por objetivo, fase e nível de execução.</p>
+    <section id="depoimentos" class="testimonials container">
+      <div class="section-title">
+        <span>Depoimentos</span>
+        <h2>Quem acompanha com método percebe a diferença</h2>
       </div>
-    </div>
-    <div class="card bg-base-100 shadow-lg border border-base-300">
-      <div class="card-body">
-        <h2 class="card-title text-secondary">Progresso em Gráficos</h2>
-        <p>Visualize aumento de carga e consistência de forma simples.</p>
+      <div class="testimonial-grid">
+        <article>
+          <p>“Pela primeira vez eu enxergo minha evolução de forma objetiva e isso me motivou muito.”</p>
+          <strong>Juliana M.</strong>
+        </article>
+        <article>
+          <p>“O chat com IA resolve dúvidas do dia a dia e eu mantenho consistência sem travar.”</p>
+          <strong>Patrícia R.</strong>
+        </article>
+        <article>
+          <p>“Treino ficou mais profissional e meu desempenho melhorou em poucas semanas.”</p>
+          <strong>Camila S.</strong>
+        </article>
       </div>
-    </div>
-    <div class="card bg-base-100 shadow-lg border border-base-300">
-      <div class="card-body">
-        <h2 class="card-title text-accent">Suporte IA 24h</h2>
-        <p>Dúvidas do dia a dia respondidas com base no seu histórico real.</p>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="grid lg:grid-cols-2 gap-6 items-stretch">
-    <div class="card bg-base-100 shadow-xl">
-      <figure>
-        <img
-          src="https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1200&q=80"
-          alt="Treinadora em sessão de acompanhamento"
-          class="h-72 w-full object-cover"
-        />
-      </figure>
-      <div class="card-body">
-        <h2 class="card-title text-2xl">Sua treinadora: Camila Rocha</h2>
-        <p class="text-base-content/80">
-          Especialista em hipertrofia e performance feminina, com 9 anos de experiência em acompanhamento individual.
-          A metodologia combina progressão técnica, controle de carga e feedback contínuo.
-        </p>
-        <div class="flex flex-wrap gap-2 mt-2">
-          <div class="badge badge-outline">CREF 000000-G/SP</div>
-          <div class="badge badge-outline">Pós em Fisiologia do Exercício</div>
-          <div class="badge badge-outline">+300 alunas atendidas</div>
-        </div>
+    <section class="cta container">
+      <div>
+        <h2>Pronta para treinar com direção e evolução visível?</h2>
+        <p>Entre agora na plataforma e comece seu acompanhamento com a metodologia REVA.</p>
       </div>
-    </div>
-
-    <div id="metodologia" class="card bg-base-100 shadow-xl">
-      <div class="card-body">
-        <h2 class="card-title text-2xl">Como funciona o acompanhamento</h2>
-        <ul class="timeline timeline-vertical">
-          <li>
-            <div class="timeline-start timeline-box">1. Diagnóstico inicial de rotina, objetivo e histórico</div>
-            <div class="timeline-middle text-primary">●</div>
-            <hr class="bg-primary" />
-          </li>
-          <li>
-            <hr class="bg-primary" />
-            <div class="timeline-start timeline-box">2. Prescrição personalizada com progressão semanal</div>
-            <div class="timeline-middle text-primary">●</div>
-            <hr class="bg-primary" />
-          </li>
-          <li>
-            <hr class="bg-primary" />
-            <div class="timeline-start timeline-box">3. Ajustes de carga com histórico automático no REVA</div>
-            <div class="timeline-middle text-primary">●</div>
-            <hr class="bg-primary" />
-          </li>
-          <li>
-            <hr class="bg-primary" />
-            <div class="timeline-start timeline-box">4. Reavaliação mensal com metas objetivas</div>
-            <div class="timeline-middle text-primary">●</div>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="flex items-end justify-between mb-4">
-      <h2 class="text-3xl font-bold">Resultados de alunas (mock)</h2>
-      <span class="badge badge-neutral">Dados ilustrativos</span>
-    </div>
-    <div class="grid md:grid-cols-3 gap-5">
-      <div class="card bg-base-100 shadow-lg">
-        <figure>
-          <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=800&q=80" alt="Aluna treinando" class="h-48 w-full object-cover" />
-        </figure>
-        <div class="card-body">
-          <h3 class="card-title">Mariana, 31 anos</h3>
-          <p>Agachamento: 40kg → 62kg em 14 semanas.</p>
-          <div class="radial-progress text-primary" style="--value:55;" role="progressbar">+55%</div>
-        </div>
-      </div>
-      <div class="card bg-base-100 shadow-lg">
-        <figure>
-          <img src="https://images.unsplash.com/photo-1538805060514-97d9cc17730c?auto=format&fit=crop&w=800&q=80" alt="Treino de força" class="h-48 w-full object-cover" />
-        </figure>
-        <div class="card-body">
-          <h3 class="card-title">Renata, 27 anos</h3>
-          <p>Levantamento terra: 55kg → 80kg em 16 semanas.</p>
-          <div class="radial-progress text-secondary" style="--value:45;" role="progressbar">+45%</div>
-        </div>
-      </div>
-      <div class="card bg-base-100 shadow-lg">
-        <figure>
-          <img src="https://images.unsplash.com/photo-1574680178050-55c6a6a96e0a?auto=format&fit=crop&w=800&q=80" alt="Treino funcional" class="h-48 w-full object-cover" />
-        </figure>
-        <div class="card-body">
-          <h3 class="card-title">Aline, 35 anos</h3>
-          <p>Supino reto: 22kg → 34kg em 12 semanas.</p>
-          <div class="radial-progress text-accent" style="--value:54;" role="progressbar">+54%</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="grid lg:grid-cols-3 gap-5">
-    <div class="card bg-base-100 shadow-md">
-      <div class="card-body">
-        <div class="rating">
-          <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled />
-          <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled />
-          <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled />
-          <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled />
-          <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled />
-        </div>
-        <p>“Pela primeira vez eu consigo ver claramente que estou evoluindo semana após semana.”</p>
-        <p class="font-semibold">— Juliana M.</p>
-      </div>
-    </div>
-    <div class="card bg-base-100 shadow-md">
-      <div class="card-body">
-        <div class="rating">
-          <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled />
-          <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled />
-          <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled />
-          <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled />
-          <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled />
-        </div>
-        <p>“O chat resolve 90% das minhas dúvidas e me deixa muito mais consistente.”</p>
-        <p class="font-semibold">— Patrícia R.</p>
-      </div>
-    </div>
-    <div class="card bg-base-100 shadow-md">
-      <div class="card-body">
-        <div class="rating">
-          <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled />
-          <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled />
-          <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled />
-          <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled />
-          <input type="radio" class="mask mask-star-2 bg-orange-400" checked disabled />
-        </div>
-        <p>“Treino ficou leve de seguir e o acompanhamento ficou muito profissional.”</p>
-        <p class="font-semibold">— Camila S.</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="card bg-gradient-to-r from-primary to-secondary text-primary-content shadow-2xl">
-    <div class="card-body items-center text-center py-12">
-      <h2 class="text-3xl font-bold">Pronta para treinar com acompanhamento de verdade?</h2>
-      <p class="max-w-2xl opacity-90">
-        Entre no REVA para visualizar sua evolução, falar com a IA da treinadora e manter constância com método.
-      </p>
-      <div class="flex gap-3 mt-2">
-        <a href="{% url 'login' %}" class="btn btn-neutral btn-lg">Entrar na plataforma</a>
-        <a href="#" class="btn btn-outline btn-lg text-primary-content border-primary-content/60">Agendar avaliação</a>
-      </div>
-    </div>
-  </section>
-</div>
-{% endblock %}
+      <a href="{% url 'login' %}" class="btn btn-lg">Entrar na plataforma</a>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,17 +1,52 @@
 {% extends 'base.html' %}
+{% block title %}Meu Progresso — REVA{% endblock %}
+{% block nav_progress %}active{% endblock %}
 
 {% block content %}
-<div class="space-y-4">
-  <h1 class="text-3xl font-bold">Meu Progresso</h1>
+<div class="mb-6">
+  <h1 class="text-3xl font-extrabold">Meu Progresso</h1>
+  <p class="opacity-50 mt-1">Acompanhe a evolução de carga dos seus exercícios.</p>
+</div>
 
-  <div class="card bg-base-100 shadow">
-    <div class="card-body space-y-3">
-      <label class="form-control w-full max-w-xs">
-        <span class="label-text">Exercício</span>
-        <select id="exercise-select" class="select select-bordered"></select>
-      </label>
-      <canvas id="progress-chart" height="120"></canvas>
-    </div>
+<!-- stats overview -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6" id="stats-bar">
+  <div class="bg-base-100 rounded-xl border border-base-300 p-4 text-center">
+    <p class="text-2xl font-bold text-primary" id="stat-exercises">0</p>
+    <p class="text-xs opacity-50">Exercícios</p>
+  </div>
+  <div class="bg-base-100 rounded-xl border border-base-300 p-4 text-center">
+    <p class="text-2xl font-bold text-secondary" id="stat-records">0</p>
+    <p class="text-xs opacity-50">Registros</p>
+  </div>
+  <div class="bg-base-100 rounded-xl border border-base-300 p-4 text-center">
+    <p class="text-2xl font-bold text-accent" id="stat-max">—</p>
+    <p class="text-xs opacity-50">Maior carga</p>
+  </div>
+  <div class="bg-base-100 rounded-xl border border-base-300 p-4 text-center">
+    <p class="text-2xl font-bold text-success" id="stat-growth">—</p>
+    <p class="text-xs opacity-50">Variação</p>
+  </div>
+</div>
+
+<div class="bg-base-100 rounded-2xl border border-base-300 p-6 space-y-5">
+  <!-- exercise selector -->
+  <fieldset class="fieldset max-w-xs">
+    <legend class="fieldset-legend">Exercício</legend>
+    <select id="exercise-select" class="select w-full">
+      <option value="" disabled selected>Selecione um exercício</option>
+    </select>
+  </fieldset>
+
+  <!-- chart area -->
+  <div class="w-full" style="min-height:320px;">
+    <canvas id="progress-chart"></canvas>
+  </div>
+
+  <!-- empty state -->
+  <div id="empty-state" class="hidden flex flex-col items-center justify-center py-12 opacity-50">
+    <svg class="w-16 h-16 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6m6 0h6m-6 0V9a2 2 0 012-2h2a2 2 0 012 2v10m6 0v-4a2 2 0 00-2-2h-2a2 2 0 00-2 2v4"/></svg>
+    <p class="font-semibold">Nenhum dado de carga ainda</p>
+    <p class="text-sm">Peça ao seu treinador para registrar suas cargas.</p>
   </div>
 </div>
 
@@ -20,30 +55,106 @@
   const payload = {{ chart_payload|safe }};
   const names = Object.keys(payload);
   const selector = document.getElementById('exercise-select');
+  const emptyState = document.getElementById('empty-state');
+
+  // populate selector
   names.forEach((name) => {
-    const option = document.createElement('option');
-    option.value = name;
-    option.textContent = name;
-    selector.appendChild(option);
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    selector.appendChild(opt);
   });
 
-  const chart = new Chart(document.getElementById('progress-chart'), {
+  // stats helpers
+  function updateStats() {
+    let totalRecords = 0;
+    let maxLoad = 0;
+    names.forEach(n => {
+      const pts = payload[n] || [];
+      totalRecords += pts.length;
+      pts.forEach(p => { if (p.load > maxLoad) maxLoad = p.load; });
+    });
+    document.getElementById('stat-exercises').textContent = names.length;
+    document.getElementById('stat-records').textContent = totalRecords;
+    document.getElementById('stat-max').textContent = maxLoad > 0 ? maxLoad + ' kg' : '—';
+  }
+  updateStats();
+
+  function calcGrowth(points) {
+    if (points.length < 2) return '—';
+    const first = points[0].load;
+    const last = points[points.length - 1].load;
+    if (first === 0) return '—';
+    const pct = (((last - first) / first) * 100).toFixed(1);
+    return (pct >= 0 ? '+' : '') + pct + '%';
+  }
+
+  // chart
+  const ctx = document.getElementById('progress-chart').getContext('2d');
+  const chart = new Chart(ctx, {
     type: 'line',
-    data: { labels: [], datasets: [{ label: 'Carga (kg)', data: [] }] },
-    options: { responsive: true }
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Carga (kg)',
+        data: [],
+        borderColor: 'oklch(0.65 0.24 265)',
+        backgroundColor: 'oklch(0.65 0.24 265 / 0.15)',
+        borderWidth: 2.5,
+        fill: true,
+        tension: 0.35,
+        pointRadius: 5,
+        pointBackgroundColor: 'oklch(0.65 0.24 265)',
+        pointBorderWidth: 2,
+        pointBorderColor: '#1d232a'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1d232a',
+          titleColor: '#fff',
+          bodyColor: '#fff',
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: {
+            label: (c) => c.parsed.y + ' kg'
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: false,
+          grid: { color: 'rgba(255,255,255,0.06)' },
+          ticks: { color: 'rgba(255,255,255,0.5)' }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: 'rgba(255,255,255,0.5)' }
+        }
+      }
+    }
   });
 
   function renderExercise(name) {
     const points = payload[name] || [];
-    chart.data.labels = points.map((point) => point.date);
-    chart.data.datasets[0].data = points.map((point) => point.load);
+    chart.data.labels = points.map(p => p.date);
+    chart.data.datasets[0].data = points.map(p => p.load);
     chart.update();
+    document.getElementById('stat-growth').textContent = calcGrowth(points);
   }
 
-  if (names.length > 0) {
+  // init
+  if (names.length === 0) {
+    emptyState.classList.remove('hidden');
+  } else {
+    selector.value = names[0];
     renderExercise(names[0]);
   }
 
-  selector.addEventListener('change', (event) => renderExercise(event.target.value));
+  selector.addEventListener('change', (e) => renderExercise(e.target.value));
 </script>
 {% endblock %}
