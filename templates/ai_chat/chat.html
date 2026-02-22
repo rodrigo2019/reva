@@ -4,25 +4,25 @@
 
 {% block content %}
 <div class="mb-6">
-  <h1 class="text-3xl font-extrabold">Chat IA</h1>
-  <p class="opacity-50 mt-1">Tire dúvidas sobre treino, nutrição e progressão com a inteligência artificial.</p>
+  <h1 class="text-2xl sm:text-3xl font-extrabold">Chat IA</h1>
+  <p class="opacity-50 mt-1 text-sm sm:text-base">Tire dúvidas sobre treino, nutrição e progressão com a inteligência artificial.</p>
 </div>
 
-<div class="bg-base-100 rounded-2xl border border-base-300 flex flex-col" style="height:calc(100vh - 220px);min-height:400px;">
+<div class="bg-base-100 rounded-2xl border border-base-300 flex flex-col" style="height:calc(100vh - 180px);min-height:360px;">
 
   <!-- messages area -->
-  <div id="chat-messages" class="flex-1 overflow-y-auto p-5 space-y-4">
+  <div id="chat-messages" class="flex-1 overflow-y-auto p-3 sm:p-5 space-y-4">
     {% for msg in messages %}
       {% if msg.role == 'user' %}
         <div class="flex justify-end">
-          <div class="max-w-[75%] bg-primary text-primary-content rounded-2xl rounded-br-sm px-4 py-3 text-sm leading-relaxed">
+          <div class="max-w-[85%] sm:max-w-[75%] bg-primary text-primary-content rounded-2xl rounded-br-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm leading-relaxed">
             {{ msg.content }}
           </div>
         </div>
       {% else %}
         <div class="flex justify-start gap-3">
           <div class="w-8 h-8 rounded-full bg-secondary text-secondary-content flex items-center justify-center text-xs font-bold shrink-0 mt-1">IA</div>
-          <div class="max-w-[75%] bg-base-200 rounded-2xl rounded-bl-sm px-4 py-3 text-sm leading-relaxed">
+          <div class="max-w-[85%] sm:max-w-[75%] bg-base-200 rounded-2xl rounded-bl-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm leading-relaxed">
             {{ msg.content }}
           </div>
         </div>
@@ -43,7 +43,7 @@
   </div>
 
   <!-- input area -->
-  <div class="border-t border-base-300 p-4">
+  <div class="border-t border-base-300 p-3 sm:p-4">
     <form method="post" action="{% url 'ai-chat-send' %}" class="flex gap-3 items-end" id="chat-form">
       {% csrf_token %}
       <input

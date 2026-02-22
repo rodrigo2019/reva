@@ -132,11 +132,46 @@ class Exercise(models.Model):
 		return self.get_equipment_display()
 
 
+class TrainingPlan(models.Model):
+	"""
+	High-level training plan (e.g. "Hipertrofia 2026").
+	Contains multiple WorkoutPlans (e.g. Treino A — Costas, Treino B — Peito).
+	"""
+	athlete = models.ForeignKey(Athlete, on_delete=models.CASCADE, related_name="training_plans")
+	name = models.CharField("Nome do plano", max_length=150)
+	objective = models.CharField("Objetivo", max_length=300, blank=True)
+	is_active = models.BooleanField("Ativo", default=True)
+	created_by = models.ForeignKey(
+		settings.AUTH_USER_MODEL,
+		on_delete=models.CASCADE,
+		related_name="created_plans",
+	)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		ordering = ["-updated_at"]
+
+	def __str__(self):
+		return f"{self.name} — {self.athlete}"
+
+	def get_absolute_url(self):
+		return reverse("plan-detail", kwargs={"pk": self.pk})
+
+
 class WorkoutPlan(models.Model):
+	plan = models.ForeignKey(
+		TrainingPlan,
+		on_delete=models.CASCADE,
+		related_name="workouts",
+		null=True,
+		blank=True,
+	)
 	athlete = models.ForeignKey(Athlete, on_delete=models.CASCADE, related_name="workout_plans")
 	name = models.CharField(max_length=120)
 	objective = models.CharField(max_length=200, blank=True)
 	is_active = models.BooleanField(default=True)
+	is_archived = models.BooleanField("Arquivado", default=False)
 	created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="created_workouts")
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
@@ -276,3 +311,29 @@ class ExerciseProgressLog(models.Model):
 
 	def __str__(self):
 		return f"{self.exercise.name}: {self.sets}x{self.reps} @ {self.load_kg or 0}kg"
+
+
+class ExerciseAlternative(models.Model):
+	"""
+	Alternative/substitute exercise for a prescription.
+	When the main exercise equipment is occupied, the student can use one of these.
+	"""
+	prescription = models.ForeignKey(
+		ExercisePrescription,
+		on_delete=models.CASCADE,
+		related_name="alternatives",
+	)
+	exercise_ref = models.ForeignKey(
+		Exercise,
+		on_delete=models.CASCADE,
+		related_name="used_as_alternative",
+		verbose_name="Exercício substituto",
+	)
+	notes = models.CharField("Observação", max_length=255, blank=True)
+	order = models.PositiveSmallIntegerField(default=1)
+
+	class Meta:
+		ordering = ["order", "id"]
+
+	def __str__(self):
+		return f"Alt. para {self.prescription.display_name}: {self.exercise_ref.name}"

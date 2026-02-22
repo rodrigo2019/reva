@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.views.generic import TemplateView
 
 from athletes.models import Athlete
-from workouts.models import ExercisePrescription, LoadUpdate, WorkoutPlan
+from workouts.models import ExercisePrescription, LoadUpdate, TrainingPlan, WorkoutPlan
 
 
 class TrainerRequiredMixin(UserPassesTestMixin):
@@ -27,6 +27,7 @@ class TrainerDashboardView(LoginRequiredMixin, TrainerRequiredMixin, TemplateVie
 
         athletes = Athlete.objects.filter(trainer=user).select_related("user")
         ctx["athlete_count"] = athletes.count()
+        ctx["plan_count"] = TrainingPlan.objects.filter(created_by=user).count()
         ctx["workout_count"] = WorkoutPlan.objects.filter(created_by=user).count()
         ctx["active_workout_count"] = WorkoutPlan.objects.filter(created_by=user, is_active=True).count()
         ctx["exercise_count"] = ExercisePrescription.objects.filter(workout__created_by=user).count()

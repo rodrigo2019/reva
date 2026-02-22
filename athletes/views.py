@@ -7,7 +7,7 @@ from django.urls import reverse, reverse_lazy
 from django.views import View
 from django.views.generic import DetailView, ListView, TemplateView
 
-from workouts.models import ExerciseProgressLog, ExercisePrescription, WorkoutPlan
+from workouts.models import ExerciseProgressLog, ExercisePrescription, TrainingPlan, WorkoutPlan
 
 from .forms import SetStudentPasswordForm, StudentRegistrationForm, StudentUpdateForm
 from .models import Athlete
@@ -84,6 +84,15 @@ class StudentDetailView(LoginRequiredMixin, TrainerRequiredMixin, DetailView):
         )
         ctx["workouts"] = workouts
         ctx["active_workouts"] = workouts.filter(is_active=True).count()
+
+        # Training plans with nested workouts
+        ctx["plans"] = (
+            TrainingPlan.objects.filter(athlete=student)
+            .prefetch_related("workouts__exercises")
+            .order_by("-is_active", "-created_at")
+        )
+        # Standalone workouts (not in any plan)
+        ctx["standalone_workouts"] = workouts.filter(plan__isnull=True)
 
         ctx["recent_logs"] = (
             ExerciseProgressLog.objects.filter(exercise__workout__athlete=student)

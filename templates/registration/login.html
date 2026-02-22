@@ -53,15 +53,15 @@
   </div>
 
   <!-- Lado direito — formulário -->
-  <div class="form-side bg-base-100 p-8 lg:p-16" style="flex:0.85; min-width:360px">
+  <div class="form-side bg-base-100 p-6 sm:p-8 lg:p-16" style="flex:1; min-width:0">
     <div class="max-w-sm mx-auto w-full">
 
       <!-- Logo mobile -->
       <a href="{% url 'landing' %}" class="lg:hidden text-xl font-black tracking-wider mb-8 block">REVA</a>
 
       <div class="mb-8">
-        <h2 class="text-3xl font-extrabold mb-2">Bem-vindo de volta</h2>
-        <p class="text-base-content" style="opacity:.55">Entre para acessar seus treinos e acompanhar sua evolução.</p>
+        <h2 class="text-2xl sm:text-3xl font-extrabold mb-2">Bem-vindo de volta</h2>
+        <p class="text-base-content text-sm sm:text-base" style="opacity:.55">Entre para acessar seus treinos e acompanhar sua evolução.</p>
       </div>
 
       {% if form.errors %}

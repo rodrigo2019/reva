@@ -1,31 +1,33 @@
 {% extends 'base.html' %}
 {% block title %}Painel — REVA{% endblock %}
+{% block screen_id %}student-dashboard{% endblock %}
+{% block assistant_screen_name %}Painel do Aluno{% endblock %}
 {% block nav_student_dashboard %}active{% endblock %}
 
 {% block content %}
 <div class="mb-6">
-  <h1 class="text-3xl font-extrabold">Olá, {{ request.user.first_name|default:request.user.username }}!</h1>
-  <p class="opacity-50 mt-1">Acompanhe seus treinos, evolução e converse com a IA.</p>
+  <h1 class="text-2xl sm:text-3xl font-extrabold">Olá, {{ request.user.first_name|default:request.user.username }}!</h1>
+  <p class="opacity-50 mt-1 text-sm sm:text-base">Acompanhe seus treinos, evolução e converse com a IA.</p>
 </div>
 
 <!-- Stats -->
-<div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-  <div class="stat bg-base-100 rounded-2xl border border-base-300">
-    <div class="stat-title">Treinos ativos</div>
-    <div class="stat-value text-primary">{{ workout_count }}</div>
+<div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
+  <div class="stat bg-base-100 rounded-2xl border border-base-300 p-3 sm:p-4">
+    <div class="stat-title text-xs">Treinos ativos</div>
+    <div class="stat-value text-xl sm:text-2xl text-primary">{{ workout_count }}</div>
   </div>
-  <div class="stat bg-base-100 rounded-2xl border border-base-300">
-    <div class="stat-title">Exercícios</div>
-    <div class="stat-value">{{ exercise_count }}</div>
+  <div class="stat bg-base-100 rounded-2xl border border-base-300 p-3 sm:p-4">
+    <div class="stat-title text-xs">Exercícios</div>
+    <div class="stat-value text-xl sm:text-2xl">{{ exercise_count }}</div>
   </div>
-  <div class="stat bg-base-100 rounded-2xl border border-base-300 col-span-2 lg:col-span-1">
-    <div class="stat-title">Atualizações de carga</div>
-    <div class="stat-value text-success">{{ recent_updates|length }}</div>
+  <div class="stat bg-base-100 rounded-2xl border border-base-300 col-span-2 lg:col-span-1 p-3 sm:p-4">
+    <div class="stat-title text-xs">Atualizações de carga</div>
+    <div class="stat-value text-xl sm:text-2xl text-success">{{ recent_updates|length }}</div>
   </div>
 </div>
 
 <!-- Quick-access cards -->
-<div class="grid md:grid-cols-2 gap-5 mb-8">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-6 sm:mb-8">
   <div class="bg-base-100 rounded-2xl border border-base-300 p-6 flex flex-col justify-between">
     <div>
       <div class="flex items-center gap-2 mb-3">

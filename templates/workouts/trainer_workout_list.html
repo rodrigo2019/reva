@@ -1,12 +1,14 @@
 {% extends 'base.html' %}
 {% block title %}Treinos — REVA{% endblock %}
+{% block screen_id %}workout-list{% endblock %}
+{% block assistant_screen_name %}Lista de Treinos{% endblock %}
 {% block nav_workouts %}active{% endblock %}
 
 {% block content %}
 <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
   <div>
-    <h1 class="text-3xl font-extrabold">Treinos</h1>
-    <p class="opacity-50 mt-1">Gerencie os treinos dos seus alunos.</p>
+    <h1 class="text-2xl sm:text-3xl font-extrabold">Treinos</h1>
+    <p class="opacity-50 mt-1 text-sm sm:text-base">Gerencie os treinos dos seus alunos.</p>
   </div>
   <a class="btn btn-primary gap-2" href="{% url 'workout-create' %}">
     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -16,12 +18,12 @@
 
 <!-- Filters -->
 <form method="get" class="bg-base-100 rounded-2xl border border-base-300 p-4 mb-6">
-  <div class="flex flex-wrap gap-3 items-end">
-    <fieldset class="fieldset flex-1 min-w-[180px]">
+  <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:items-end">
+    <fieldset class="fieldset flex-1 sm:min-w-[180px]">
       <legend class="fieldset-legend text-xs">Buscar</legend>
       <input class="input input-sm w-full" type="text" name="q" value="{{ search_query }}" placeholder="Nome do treino...">
     </fieldset>
-    <fieldset class="fieldset min-w-[160px]">
+    <fieldset class="fieldset sm:min-w-[160px]">
       <legend class="fieldset-legend text-xs">Aluno</legend>
       <select class="select select-sm w-full" name="aluno">
         <option value="">Todos</option>
@@ -30,7 +32,7 @@
         {% endfor %}
       </select>
     </fieldset>
-    <fieldset class="fieldset min-w-[120px]">
+    <fieldset class="fieldset sm:min-w-[120px]">
       <legend class="fieldset-legend text-xs">Status</legend>
       <select class="select select-sm w-full" name="status">
         <option value="">Todos</option>
@@ -38,29 +40,32 @@
         <option value="inativo" {% if selected_status == "inativo" %}selected{% endif %}>Inativo</option>
       </select>
     </fieldset>
-    <button class="btn btn-primary btn-sm" type="submit">Filtrar</button>
-    {% if search_query or selected_athlete or selected_status %}
-      <a href="{% url 'workout-list' %}" class="btn btn-ghost btn-sm">Limpar</a>
-    {% endif %}
+    <div class="flex gap-2">
+      <button class="btn btn-primary btn-sm flex-1 sm:flex-none" type="submit">Filtrar</button>
+      {% if search_query or selected_athlete or selected_status %}
+        <a href="{% url 'workout-list' %}" class="btn btn-ghost btn-sm flex-1 sm:flex-none">Limpar</a>
+      {% endif %}
+    </div>
   </div>
 </form>
 
 <div class="grid gap-4">
   {% for workout in workouts %}
-    <a href="{% url 'workout-detail' workout.pk %}" class="bg-base-100 rounded-2xl border border-base-300 p-5 flex items-center gap-5 hover:border-primary transition group">
-      <div class="avatar placeholder">
-        <div class="bg-primary text-primary-content w-12 rounded-xl">
-          <span class="text-lg font-bold">{{ workout.athlete.user.username|make_list|first|upper }}</span>
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-4 sm:p-5 flex items-center gap-3 sm:gap-5 hover:border-primary transition group relative">
+      <a href="{% url 'workout-detail' workout.pk %}" class="absolute inset-0 z-0 rounded-2xl" aria-label="Detalhes"></a>
+      <div class="avatar placeholder z-[1]">
+        <div class="bg-primary text-primary-content w-10 sm:w-12 rounded-xl">
+          <span class="text-base sm:text-lg font-bold">{{ workout.athlete.user.username|make_list|first|upper }}</span>
         </div>
       </div>
-      <div class="flex-1 min-w-0">
-        <p class="font-bold text-lg group-hover:text-primary transition truncate">{{ workout.name }}</p>
-        <p class="text-sm opacity-50">{{ workout.athlete.user.get_full_name|default:workout.athlete.user.username }}</p>
+      <div class="flex-1 min-w-0 z-[1]">
+        <p class="font-bold text-base sm:text-lg group-hover:text-primary transition truncate">{{ workout.name }}</p>
+        <p class="text-xs sm:text-sm opacity-50">
+          {{ workout.athlete.user.get_full_name|default:workout.athlete.user.username }}
+          {% if workout.plan %} · <a href="{% url 'plan-detail' workout.plan.pk %}" class="hover:text-primary relative z-[2]">{{ workout.plan.name }}</a>{% endif %}
+        </p>
       </div>
-      <div class="hidden sm:flex flex-col items-end gap-1">
-        {% if workout.objective %}
-          <span class="badge badge-ghost badge-sm">{{ workout.objective|truncatechars:28 }}</span>
-        {% endif %}
+      <div class="flex items-center gap-2 z-[1] shrink-0">
         {% if workout.is_active %}
           <span class="badge badge-success badge-sm gap-1">
             <span class="w-1.5 h-1.5 rounded-full bg-success-content inline-block"></span>Ativo
@@ -68,9 +73,12 @@
         {% else %}
           <span class="badge badge-ghost badge-sm">Inativo</span>
         {% endif %}
+        <a href="{% url 'workout-session' workout.pk %}" class="btn btn-primary btn-xs sm:btn-sm gap-1 relative z-[2]" title="Iniciar sessão">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span class="hidden sm:inline">Sessão</span>
+        </a>
       </div>
-      <svg class="w-5 h-5 opacity-30 group-hover:opacity-70 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-    </a>
+    </div>
   {% empty %}
     <div class="bg-base-100 rounded-2xl border border-base-300 p-10 text-center">
       <svg class="w-12 h-12 mx-auto opacity-20 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>

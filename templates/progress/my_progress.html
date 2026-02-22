@@ -1,34 +1,36 @@
 {% extends 'base.html' %}
 {% block title %}Meu Progresso — REVA{% endblock %}
+{% block screen_id %}my-progress{% endblock %}
+{% block assistant_screen_name %}Meu Progresso{% endblock %}
 {% block nav_progress %}active{% endblock %}
 
 {% block content %}
 <div class="mb-6">
-  <h1 class="text-3xl font-extrabold">Meu Progresso</h1>
-  <p class="opacity-50 mt-1">Acompanhe a evolução de carga dos seus exercícios.</p>
+  <h1 class="text-2xl sm:text-3xl font-extrabold">Meu Progresso</h1>
+  <p class="opacity-50 mt-1 text-sm sm:text-base">Acompanhe a evolução de carga dos seus exercícios.</p>
 </div>
 
 <!-- stats overview -->
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6" id="stats-bar">
-  <div class="bg-base-100 rounded-xl border border-base-300 p-4 text-center">
-    <p class="text-2xl font-bold text-primary" id="stat-exercises">0</p>
-    <p class="text-xs opacity-50">Exercícios</p>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6" id="stats-bar">
+  <div class="bg-base-100 rounded-xl border border-base-300 p-3 sm:p-4 text-center">
+    <p class="text-xl sm:text-2xl font-bold text-primary" id="stat-exercises">0</p>
+    <p class="text-[10px] sm:text-xs opacity-50">Exercícios</p>
   </div>
-  <div class="bg-base-100 rounded-xl border border-base-300 p-4 text-center">
-    <p class="text-2xl font-bold text-secondary" id="stat-records">0</p>
-    <p class="text-xs opacity-50">Registros</p>
+  <div class="bg-base-100 rounded-xl border border-base-300 p-3 sm:p-4 text-center">
+    <p class="text-xl sm:text-2xl font-bold text-secondary" id="stat-records">0</p>
+    <p class="text-[10px] sm:text-xs opacity-50">Registros</p>
   </div>
-  <div class="bg-base-100 rounded-xl border border-base-300 p-4 text-center">
-    <p class="text-2xl font-bold text-accent" id="stat-max">—</p>
-    <p class="text-xs opacity-50">Maior carga</p>
+  <div class="bg-base-100 rounded-xl border border-base-300 p-3 sm:p-4 text-center">
+    <p class="text-xl sm:text-2xl font-bold text-accent" id="stat-max">—</p>
+    <p class="text-[10px] sm:text-xs opacity-50">Maior carga</p>
   </div>
-  <div class="bg-base-100 rounded-xl border border-base-300 p-4 text-center">
-    <p class="text-2xl font-bold text-success" id="stat-growth">—</p>
-    <p class="text-xs opacity-50">Variação</p>
+  <div class="bg-base-100 rounded-xl border border-base-300 p-3 sm:p-4 text-center">
+    <p class="text-xl sm:text-2xl font-bold text-success" id="stat-growth">—</p>
+    <p class="text-[10px] sm:text-xs opacity-50">Variação</p>
   </div>
 </div>
 
-<div class="bg-base-100 rounded-2xl border border-base-300 p-6 space-y-5">
+<div class="bg-base-100 rounded-2xl border border-base-300 p-4 sm:p-6 space-y-5">
   <!-- two cascading selectors -->
   <div class="flex flex-col sm:flex-row gap-4">
     <fieldset class="fieldset flex-1">
@@ -46,7 +48,7 @@
   </div>
 
   <!-- chart area -->
-  <div class="w-full" style="min-height:320px;">
+  <div class="w-full" style="min-height:240px;">
     <canvas id="progress-chart"></canvas>
   </div>
 

@@ -2,18 +2,53 @@ from django import forms
 
 from athletes.models import Athlete
 
-from .models import Exercise, ExercisePrescription, WorkoutPlan
+from .models import Exercise, ExerciseAlternative, ExercisePrescription, TrainingPlan, WorkoutPlan
 
 
-class WorkoutPlanForm(forms.ModelForm):
+class TrainingPlanForm(forms.ModelForm):
     class Meta:
-        model = WorkoutPlan
+        model = TrainingPlan
         fields = ["athlete", "name", "objective", "is_active"]
 
     def __init__(self, *args, trainer=None, **kwargs):
         super().__init__(*args, **kwargs)
         if trainer is not None:
             self.fields["athlete"].queryset = Athlete.objects.filter(trainer=trainer)
+
+
+class WorkoutPlanForm(forms.ModelForm):
+    class Meta:
+        model = WorkoutPlan
+        fields = ["plan", "athlete", "name", "objective", "is_active"]
+
+    def __init__(self, *args, trainer=None, plan=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if trainer is not None:
+            self.fields["athlete"].queryset = Athlete.objects.filter(trainer=trainer)
+            self.fields["plan"].queryset = TrainingPlan.objects.filter(created_by=trainer)
+        self.fields["plan"].required = False
+        # When creating from a plan context, pre-select and lock
+        if plan is not None:
+            self.fields["plan"].initial = plan.pk
+            self.fields["plan"].widget = forms.HiddenInput()
+            self.fields["athlete"].initial = plan.athlete.pk
+            self.fields["athlete"].widget = forms.HiddenInput()
+
+
+class ExerciseAlternativeForm(forms.ModelForm):
+    class Meta:
+        model = ExerciseAlternative
+        fields = ["exercise_ref", "notes", "order"]
+
+    def __init__(self, *args, trainer=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        from django.db.models import Q
+        if trainer:
+            self.fields["exercise_ref"].queryset = Exercise.objects.filter(
+                Q(is_global=True) | Q(created_by=trainer)
+            )
+        else:
+            self.fields["exercise_ref"].queryset = Exercise.objects.filter(is_global=True)
 
 
 class ExerciseCatalogForm(forms.ModelForm):
