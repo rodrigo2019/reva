@@ -28,7 +28,7 @@ urlpatterns = [
     path("exercicios/", include("workouts.exercise_urls")),
     path("progresso/", include("progress.urls")),
     path("chat/", include("ai_chat.urls")),
-    path("assistente/api/", include("ai_chat.assistant_urls")),
+    path("assistente/api/", include("ai_assistant.urls")),
 ]
 
 if settings.DEBUG:

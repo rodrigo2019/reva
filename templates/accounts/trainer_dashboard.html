@@ -10,24 +10,14 @@
     <h1 class="text-2xl sm:text-3xl font-extrabold">Painel do Treinador</h1>
     <p class="opacity-50 mt-1 text-sm sm:text-base">Visão geral dos seus alunos e treinos.</p>
   </div>
-  <div class="flex gap-2">
-    <a href="{% url 'student-create' %}" class="btn btn-ghost btn-sm sm:btn-md gap-2">
-      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-      Novo Aluno
-    </a>
-    <a href="{% url 'plan-create' %}" class="btn btn-ghost btn-sm sm:btn-md gap-2">
-      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-      Novo Plano
-    </a>
-    <a href="{% url 'workout-create' %}" class="btn btn-primary btn-sm sm:btn-md gap-2">
-      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-      Novo Treino
-    </a>
-  </div>
+  <a href="{% url 'student-create' %}" class="btn btn-primary btn-sm sm:btn-md gap-2">
+    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+    Novo Aluno
+  </a>
 </div>
 
 <!-- Stat Cards with Icons -->
-<div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6 sm:mb-8">
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
   <div class="bg-base-100 rounded-2xl border border-base-300 p-3 sm:p-5 flex items-center gap-3 sm:gap-4">
     <div class="bg-primary/10 p-2.5 sm:p-3 rounded-xl">
       <svg class="w-5 h-5 sm:w-7 sm:h-7 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -38,21 +28,12 @@
     </div>
   </div>
   <div class="bg-base-100 rounded-2xl border border-base-300 p-3 sm:p-5 flex items-center gap-3 sm:gap-4">
-    <div class="bg-info/10 p-2.5 sm:p-3 rounded-xl">
-      <svg class="w-5 h-5 sm:w-7 sm:h-7 text-info" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-    </div>
-    <div>
-      <p class="text-xl sm:text-2xl font-extrabold text-info">{{ plan_count }}</p>
-      <p class="text-xs opacity-50">Planos</p>
-    </div>
-  </div>
-  <div class="bg-base-100 rounded-2xl border border-base-300 p-3 sm:p-5 flex items-center gap-3 sm:gap-4">
     <div class="bg-secondary/10 p-2.5 sm:p-3 rounded-xl">
-      <svg class="w-5 h-5 sm:w-7 sm:h-7 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      <svg class="w-5 h-5 sm:w-7 sm:h-7 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
     </div>
     <div>
-      <p class="text-xl sm:text-2xl font-extrabold text-secondary">{{ workout_count }}</p>
-      <p class="text-xs opacity-50">Treinos</p>
+      <p class="text-xl sm:text-2xl font-extrabold text-secondary">{{ plan_count }}</p>
+      <p class="text-xs opacity-50">Planos</p>
     </div>
   </div>
   <div class="bg-base-100 rounded-2xl border border-base-300 p-3 sm:p-5 flex items-center gap-3 sm:gap-4">
@@ -61,7 +42,7 @@
     </div>
     <div>
       <p class="text-xl sm:text-2xl font-extrabold text-success">{{ active_workout_count }}</p>
-      <p class="text-xs opacity-50">Ativos</p>
+      <p class="text-xs opacity-50">Treinos ativos</p>
     </div>
   </div>
   <div class="bg-base-100 rounded-2xl border border-base-300 p-3 sm:p-5 flex items-center gap-3 sm:gap-4">
@@ -141,7 +122,7 @@
     <div class="bg-base-100 rounded-2xl border border-base-300 p-4 sm:p-5">
       <div class="flex justify-between items-center mb-4">
         <h2 class="font-bold text-lg">Atividade Recente</h2>
-        <a href="{% url 'workout-list' %}" class="btn btn-ghost btn-xs">Ver treinos</a>
+        <a href="{% url 'student-list' %}" class="btn btn-ghost btn-xs">Ver alunos</a>
       </div>
 
       <!-- Mobile card view -->

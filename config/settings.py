@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "workouts",
     "progress",
     "ai_chat",
+    "ai_assistant",
 ]
 
 MIDDLEWARE = [
@@ -140,3 +141,27 @@ AUTH_USER_MODEL = "accounts.User"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# =============================================================================
+# AI Assistant Configuration
+# =============================================================================
+
+# LLM Provider: "openai", "anthropic", "deepseek", "google"
+AI_PROVIDER = os.getenv("AI_PROVIDER", "openai")
+
+# Default model for the assistant
+AI_MODEL = os.getenv("AI_MODEL", "gpt-4o-mini")
+
+# Audio transcription model
+AI_TRANSCRIPTION_MODEL = os.getenv("AI_TRANSCRIPTION_MODEL", "gpt-4o-transcribe")
+
+# Azure OpenAI settings
+AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY", "")
+AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "")
+
+# Azure AI Foundry settings (for Anthropic, DeepSeek, xAI providers)
+AZURE_AI_FOUNDRY_API_KEY = os.getenv("AZURE_AI_FOUNDRY_API_KEY", "")
+AZURE_AI_FOUNDRY_ENDPOINT = os.getenv("AZURE_AI_FOUNDRY_ENDPOINT", "")
+
+# Google API Key (for Gemini models)
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")

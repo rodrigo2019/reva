@@ -1,32 +1,25 @@
 {% extends 'base.html' %}
 {% block title %}{{ workout.name }} — REVA{% endblock %}
-{% block nav_workouts %}active{% endblock %}
+{% block nav_students %}active{% endblock %}
 
 {% block content %}
 <!-- Header -->
 <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
   <div>
-    {% if workout.plan %}
-      <div class="flex items-center gap-1 text-sm opacity-50 mb-2">
-        <a href="{% url 'plan-list' %}" class="hover:opacity-80 transition">Planos</a>
+    <div class="flex items-center gap-1 text-sm opacity-50 mb-2">
+      <a href="{% url 'student-list' %}" class="hover:opacity-80 transition">Alunos</a>
+      <span>›</span>
+      <a href="{% url 'student-detail' workout.athlete.pk %}" class="hover:opacity-80 transition">{{ workout.athlete.user.get_full_name|default:workout.athlete.user.username }}</a>
+      {% if workout.plan %}
         <span>›</span>
         <a href="{% url 'plan-detail' workout.plan.pk %}" class="hover:opacity-80 transition">{{ workout.plan.name }}</a>
-        <span>›</span>
-        <span class="opacity-70">{{ workout.name }}</span>
-      </div>
-    {% else %}
-      <a href="{% url 'workout-list' %}" class="text-sm opacity-50 hover:opacity-80 transition inline-flex items-center gap-1 mb-2">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-        Voltar para treinos
-      </a>
-    {% endif %}
+      {% endif %}
+      <span>›</span>
+      <span class="opacity-70">{{ workout.name }}</span>
+    </div>
     <h1 class="text-2xl sm:text-3xl font-extrabold">{{ workout.name }}</h1>
     <p class="opacity-50 mt-1">
-      Aluno:
-      <a href="{% url 'student-detail' workout.athlete.pk %}" class="underline hover:text-primary transition">
-        {{ workout.athlete.user.get_full_name|default:workout.athlete.user.username }}
-      </a>
-      {% if workout.plan %} · Plano: <a href="{% url 'plan-detail' workout.plan.pk %}" class="underline hover:text-primary transition">{{ workout.plan.name }}</a>{% endif %}
+      {% if workout.objective %}{{ workout.objective }}{% elif workout.plan %}Treino do plano {{ workout.plan.name }}{% else %}Treino avulso{% endif %}
     </p>
   </div>
   <div class="flex items-center gap-2 flex-wrap">

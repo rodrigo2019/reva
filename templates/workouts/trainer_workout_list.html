@@ -2,18 +2,18 @@
 {% block title %}Treinos — REVA{% endblock %}
 {% block screen_id %}workout-list{% endblock %}
 {% block assistant_screen_name %}Lista de Treinos{% endblock %}
-{% block nav_workouts %}active{% endblock %}
+{% block nav_students %}active{% endblock %}
 
 {% block content %}
 <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
   <div>
+    <a href="{% url 'student-list' %}" class="text-sm opacity-50 hover:opacity-80 transition inline-flex items-center gap-1 mb-1">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      Voltar para alunos
+    </a>
     <h1 class="text-2xl sm:text-3xl font-extrabold">Treinos</h1>
     <p class="opacity-50 mt-1 text-sm sm:text-base">Gerencie os treinos dos seus alunos.</p>
   </div>
-  <a class="btn btn-primary gap-2" href="{% url 'workout-create' %}">
-    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-    Novo Treino
-  </a>
 </div>
 
 <!-- Filters -->

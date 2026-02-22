@@ -1,20 +1,13 @@
 {% extends 'base.html' %}
 {% block title %}{% if editing %}Editar Treino{% else %}Novo Treino{% endif %} — REVA{% endblock %}
-{% block nav_workouts %}active{% endblock %}
+{% block nav_students %}active{% endblock %}
 
 {% block content %}
 <div class="mb-6">
-  {% if plan %}
-    <a href="{% url 'plan-detail' plan.pk %}" class="text-sm opacity-50 hover:opacity-80 transition inline-flex items-center gap-1 mb-2">
-      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-      Voltar para {{ plan.name }}
-    </a>
-  {% else %}
-    <a href="{% url 'workout-list' %}" class="text-sm opacity-50 hover:opacity-80 transition inline-flex items-center gap-1 mb-2">
-      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-      Voltar para treinos
-    </a>
-  {% endif %}
+  <a href="{% if plan %}{% url 'plan-detail' plan.pk %}{% else %}{% url 'student-list' %}{% endif %}" class="text-sm opacity-50 hover:opacity-80 transition inline-flex items-center gap-1 mb-2">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    {% if plan %}Voltar para {{ plan.name }}{% else %}Voltar para alunos{% endif %}
+  </a>
   <h1 class="text-2xl sm:text-3xl font-extrabold">{% if editing %}Editar Treino{% else %}Novo Treino{% endif %}</h1>
   <p class="opacity-50 mt-1 text-sm sm:text-base">
     {% if editing %}Atualize os dados do treino.{% elif plan %}Criando treino dentro do plano <strong>{{ plan.name }}</strong> para {{ plan.athlete.user.get_full_name }}.{% else %}Preencha os dados para criar um treino para o aluno.{% endif %}
