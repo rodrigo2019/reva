@@ -18,13 +18,67 @@
       </a>
     </p>
   </div>
-  {% if workout.is_active %}
-    <span class="badge badge-success gap-1">
-      <span class="w-2 h-2 rounded-full bg-success-content inline-block"></span>Ativo
-    </span>
-  {% else %}
-    <span class="badge badge-ghost">Inativo</span>
-  {% endif %}
+  <div class="flex items-center gap-2">
+    {% if workout.is_active %}
+      <span class="badge badge-success gap-1">
+        <span class="w-2 h-2 rounded-full bg-success-content inline-block"></span>Ativo
+      </span>
+    {% else %}
+      <span class="badge badge-ghost">Inativo</span>
+    {% endif %}
+    <a href="{% url 'workout-edit' workout.pk %}" class="btn btn-ghost btn-sm gap-1">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+      Editar
+    </a>
+    <a href="{% url 'workout-delete' workout.pk %}" class="btn btn-ghost btn-sm text-error gap-1">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+      Excluir
+    </a>
+  </div>
+</div>
+
+<!-- Counters -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+  <div class="bg-base-100 rounded-xl border border-base-300 p-4 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+      <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+    </div>
+    <div>
+      <p class="text-xl font-extrabold">{{ exercise_count }}</p>
+      <p class="text-xs opacity-50">Exercício{{ exercise_count|pluralize:"s" }}</p>
+    </div>
+  </div>
+  <div class="bg-base-100 rounded-xl border border-base-300 p-4 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
+      <svg class="w-5 h-5 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+    </div>
+    <div>
+      <p class="text-xl font-extrabold">{{ muscle_groups_count }}</p>
+      <p class="text-xs opacity-50">Grupo{{ muscle_groups_count|pluralize:"s" }} muscular{{ muscle_groups_count|pluralize:"es" }}</p>
+    </div>
+  </div>
+  <div class="bg-base-100 rounded-xl border border-base-300 p-4 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+      <svg class="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+    </div>
+    <div>
+      <p class="text-xl font-extrabold">{{ total_load_updates }}</p>
+      <p class="text-xs opacity-50">Atualização{{ total_load_updates|pluralize:"ões" }} de carga</p>
+    </div>
+  </div>
+  <div class="bg-base-100 rounded-xl border border-base-300 p-4 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-lg flex items-center justify-center {% if workout.is_active %}bg-success/10{% else %}bg-base-200{% endif %}">
+      {% if workout.is_active %}
+        <svg class="w-5 h-5 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      {% else %}
+        <svg class="w-5 h-5 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      {% endif %}
+    </div>
+    <div>
+      <p class="text-xl font-extrabold">{% if workout.is_active %}Ativo{% else %}Inativo{% endif %}</p>
+      <p class="text-xs opacity-50">{{ workout.objective|default:"Sem objetivo" }}</p>
+    </div>
+  </div>
 </div>
 
 <div class="grid lg:grid-cols-5 gap-6">
@@ -39,18 +93,31 @@
 
       {% for exercise in workout.exercises.all %}
         <div class="border border-base-300 rounded-xl p-4 mb-3">
-          <!-- Exercise header -->
-          <div class="flex items-start justify-between gap-3 mb-3">
-            <div>
+          <!-- Exercise header with image -->
+          <div class="flex items-start gap-3 mb-3">
+            {% if exercise.image %}
+              <img src="{{ exercise.image.url }}" alt="{{ exercise.display_name }}" class="w-16 h-16 object-cover rounded-lg shrink-0 border border-base-300">
+            {% elif exercise.exercise_ref %}
+              <div class="w-16 h-16 bg-base-200 rounded-lg flex items-center justify-center shrink-0">
+                <svg class="w-6 h-6 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              </div>
+            {% endif %}
+            <div class="flex-1 min-w-0">
               <p class="font-bold">
                 <span class="text-primary mr-1">{{ exercise.exercise_order }}.</span>
-                {{ exercise.name }}
+                {{ exercise.display_name }}
               </p>
               <p class="text-sm opacity-50 mt-1">
                 {{ exercise.sets }}x{{ exercise.reps }}
                 &nbsp;•&nbsp; Descanso: {{ exercise.rest_seconds }}s
                 {% if exercise.notes %}&nbsp;•&nbsp; {{ exercise.notes }}{% endif %}
               </p>
+              {% if exercise.muscle_group_label %}
+                <div class="flex gap-1 mt-1">
+                  <span class="badge badge-xs muscle-group-badge" data-group="{% if exercise.exercise_ref %}{{ exercise.exercise_ref.muscle_group }}{% endif %}">{{ exercise.muscle_group_label }}</span>
+                  {% if exercise.equipment_label %}<span class="badge badge-ghost badge-xs">{{ exercise.equipment_label }}</span>{% endif %}
+                </div>
+              {% endif %}
             </div>
             <div class="text-right flex-shrink-0">
               <p class="text-2xl font-extrabold text-primary">{{ exercise.current_load_kg|default:"–" }}</p>
@@ -72,7 +139,7 @@
                 {% csrf_token %}
                 <fieldset class="fieldset">
                   <legend class="fieldset-legend text-xs">Nome</legend>
-                  <input class="input input-sm w-full" type="text" name="name" value="{{ exercise.name }}" required>
+                  <input class="input input-sm w-full" type="text" name="name" value="{{ exercise.display_name }}" required>
                 </fieldset>
                 <div class="grid grid-cols-2 gap-3">
                   <fieldset class="fieldset">
@@ -100,12 +167,26 @@
                 </fieldset>
                 <button class="btn btn-primary btn-sm btn-block" type="submit">Salvar alterações</button>
               </form>
-              <form method="post" action="{% url 'exercise-delete' workout.pk exercise.pk %}" class="mt-2" onsubmit="return confirm('Tem certeza que deseja excluir este exercício?')">
+              <form method="post" action="{% url 'exercise-delete' workout.pk exercise.pk %}" class="mt-2">
                 {% csrf_token %}
-                <button class="btn btn-error btn-sm btn-outline btn-block gap-1" type="submit">
+                <button class="btn btn-error btn-sm btn-outline btn-block gap-1" type="button" onclick="document.getElementById('delete-modal-{{ exercise.pk }}').showModal()">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                   Excluir exercício
                 </button>
+                <dialog id="delete-modal-{{ exercise.pk }}" class="modal">
+                  <div class="modal-box">
+                    <h3 class="text-lg font-bold">Excluir exercício</h3>
+                    <p class="py-4 opacity-70">Tem certeza que deseja excluir <strong>{{ exercise.display_name }}</strong>? Todo o histórico de carga será perdido.</p>
+                    <div class="modal-action">
+                      <button type="button" class="btn btn-ghost" onclick="document.getElementById('delete-modal-{{ exercise.pk }}').close()">Cancelar</button>
+                      <button type="submit" class="btn btn-error gap-1">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        Excluir
+                      </button>
+                    </div>
+                  </div>
+                  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+                </dialog>
               </form>
             </div>
           </div>
@@ -124,47 +205,28 @@
             <button class="btn btn-primary btn-sm" type="submit">Atualizar</button>
           </form>
 
-          <!-- Progress history -->
-          {% with logs=exercise.progress_logs.all|slice:":5" %}
-            {% if logs %}
-              <details class="mt-3">
-                <summary class="text-xs opacity-50 cursor-pointer hover:opacity-80">
-                  Histórico de alterações ({{ exercise.progress_logs.count }})
-                </summary>
-                <div class="mt-2 space-y-1">
-                  {% for log in logs %}
-                    <div class="flex items-center gap-2 text-xs">
-                      <span class="opacity-40">{{ log.created_at|date:"d/m H:i" }}</span>
-                      <span class="badge badge-ghost badge-xs">{{ log.sets }}x{{ log.reps }}</span>
-                      {% if log.load_kg %}
-                        <span class="badge badge-primary badge-xs">{{ log.load_kg }}kg</span>
-                      {% endif %}
-                      <span class="badge badge-ghost badge-xs">{{ log.rest_seconds }}s</span>
-                      {% if log.notes %}
-                        <span class="opacity-50 truncate">{{ log.notes }}</span>
-                      {% endif %}
-                    </div>
-                  {% endfor %}
+          <!-- Load chart + history -->
+          {% with updates_count=exercise.load_updates.count %}
+            {% if updates_count > 0 %}
+              <div class="mt-3">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs opacity-50">Evolução de carga ({{ updates_count }} registro{{ updates_count|pluralize:"s" }})</span>
                 </div>
-              </details>
-            {% endif %}
-          {% endwith %}
-
-          <!-- Mini load history -->
-          {% with updates=exercise.load_updates.all|slice:":3" %}
-            {% if updates %}
-              <div class="mt-2 flex flex-wrap gap-2">
-                {% for u in updates %}
-                  <span class="badge badge-ghost badge-sm">{{ u.new_load_kg }}kg — {{ u.created_at|date:"d/m" }}</span>
-                {% endfor %}
+                <div style="height:110px;">
+                  <canvas id="chart-ex-{{ exercise.pk }}"></canvas>
+                </div>
               </div>
+            {% else %}
+              <p class="text-xs opacity-30 mt-3">Nenhum registro de carga ainda.</p>
             {% endif %}
           {% endwith %}
         </div>
       {% empty %}
-        <div class="text-center py-8 opacity-50">
-          <p class="mb-1">Nenhum exercício adicionado.</p>
-          <p class="text-sm">Use o formulário ao lado para adicionar o primeiro.</p>
+        <div class="flex flex-col items-center py-12 opacity-60">
+          <svg class="w-16 h-16 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+          <p class="font-semibold mb-1">Nenhum exercício adicionado</p>
+          <p class="text-sm mb-4">Use o formulário ao lado para adicionar o primeiro exercício a este treino.</p>
+          <span class="badge badge-ghost">Dica: busque no catálogo para agilizar</span>
         </div>
       {% endfor %}
     </div>
@@ -174,22 +236,51 @@
   <div class="lg:col-span-2">
     <div class="bg-base-100 rounded-2xl border border-base-300 p-5 sticky top-24">
       <h2 class="font-bold text-lg mb-4">Adicionar Exercício</h2>
-      <form method="post" action="{% url 'exercise-create' workout.pk %}" class="space-y-3">
-        {% csrf_token %}
 
-        <fieldset class="fieldset">
+      <!-- Toggle: Catálogo vs Custom -->
+      <div class="tabs tabs-box mb-4">
+        <a class="tab tab-active" id="tab-catalog" onclick="toggleMode('catalog')">Do catálogo</a>
+        <a class="tab" id="tab-custom" onclick="toggleMode('custom')">Customizado</a>
+      </div>
+
+      <!-- Catalog search -->
+      <div id="catalog-section" class="mb-4">
+        <fieldset class="fieldset mb-3">
+          <legend class="fieldset-legend">Buscar exercício</legend>
+          <input class="input w-full" type="text" id="catalog-search" placeholder="Digite para buscar..." autocomplete="off">
+        </fieldset>
+        <div id="catalog-results" class="space-y-2 max-h-64 overflow-y-auto"></div>
+        <!-- Selected exercise display -->
+        <div id="selected-exercise" class="hidden mt-3 p-3 bg-primary/10 border border-primary/30 rounded-xl">
+          <div class="flex items-center gap-3">
+            <img id="selected-img" class="w-12 h-12 object-cover rounded-lg hidden" alt="">
+            <div class="flex-1 min-w-0">
+              <p class="font-bold text-sm" id="selected-name"></p>
+              <p class="text-xs opacity-50" id="selected-meta"></p>
+            </div>
+            <button type="button" class="btn btn-ghost btn-xs btn-circle" onclick="clearSelection()">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <form method="post" action="{% url 'exercise-create' workout.pk %}" class="space-y-3" id="exercise-form">
+        {% csrf_token %}
+        <input type="hidden" name="exercise_ref" id="exercise-ref-input" value="">
+
+        <!-- Custom name — shown only in custom mode or when no catalog selection -->
+        <fieldset class="fieldset hidden" id="custom-name-field">
           <legend class="fieldset-legend">Nome do exercício</legend>
-          <input class="input w-full" type="text" name="name" placeholder="ex: Agachamento livre" required>
+          <input class="input w-full" type="text" name="name" id="exercise-name-input" placeholder="ex: Agachamento livre">
         </fieldset>
 
         <div class="grid grid-cols-2 gap-3">
           <fieldset class="fieldset">
             <legend class="fieldset-legend">Séries</legend>
-            <input class="input w-full" type="number" name="sets" value="3" min="1" required>
+            <input class="input w-full" type="number" name="sets" id="input-sets" value="3" min="1" required>
           </fieldset>
           <fieldset class="fieldset">
             <legend class="fieldset-legend">Reps</legend>
-            <input class="input w-full" type="text" name="reps" value="8-12" required>
+            <input class="input w-full" type="text" name="reps" id="input-reps" value="8-12" required>
           </fieldset>
         </div>
 
@@ -200,7 +291,7 @@
           </fieldset>
           <fieldset class="fieldset">
             <legend class="fieldset-legend">Descanso (s)</legend>
-            <input class="input w-full" type="number" name="rest_seconds" value="60" min="0" required>
+            <input class="input w-full" type="number" name="rest_seconds" id="input-rest" value="60" min="0" required>
           </fieldset>
         </div>
 
@@ -220,4 +311,218 @@
   </div>
 
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+  // Render per-exercise load progression charts
+  const exerciseCharts = {{ exercise_charts_json|safe }};
+  Object.keys(exerciseCharts).forEach(exId => {
+    const canvas = document.getElementById('chart-ex-' + exId);
+    if (!canvas) return;
+    const points = exerciseCharts[exId];
+    new Chart(canvas.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: points.map(p => p.date),
+        datasets: [{
+          data: points.map(p => p.load),
+          borderColor: 'oklch(0.65 0.24 265)',
+          backgroundColor: 'oklch(0.65 0.24 265 / 0.12)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.35,
+          pointRadius: points.length === 1 ? 5 : 3,
+          pointBackgroundColor: 'oklch(0.65 0.24 265)',
+          pointBorderWidth: 1.5,
+          pointBorderColor: '#1d232a',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1d232a',
+            titleColor: '#fff',
+            bodyColor: '#aaa',
+            padding: 8,
+            cornerRadius: 6,
+            callbacks: { label: c => c.parsed.y + ' kg' }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            grid: { color: 'rgba(255,255,255,0.05)' },
+            ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10 }, maxTicksLimit: 4 }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10 }, maxTicksLimit: 6 }
+          }
+        }
+      }
+    });
+  });
+</script>
+<script>
+  let currentMode = 'catalog';
+  let searchTimeout = null;
+
+  function toggleMode(mode) {
+    currentMode = mode;
+    const tabCatalog = document.getElementById('tab-catalog');
+    const tabCustom = document.getElementById('tab-custom');
+    const catalogSection = document.getElementById('catalog-section');
+    const customNameField = document.getElementById('custom-name-field');
+    const nameInput = document.getElementById('exercise-name-input');
+
+    if (mode === 'catalog') {
+      tabCatalog.classList.add('tab-active');
+      tabCustom.classList.remove('tab-active');
+      catalogSection.classList.remove('hidden');
+      customNameField.classList.add('hidden');
+      nameInput.removeAttribute('required');
+    } else {
+      tabCustom.classList.add('tab-active');
+      tabCatalog.classList.remove('tab-active');
+      catalogSection.classList.add('hidden');
+      customNameField.classList.remove('hidden');
+      nameInput.setAttribute('required', 'required');
+      clearSelection();
+    }
+  }
+
+  function clearSelection() {
+    document.getElementById('exercise-ref-input').value = '';
+    document.getElementById('selected-exercise').classList.add('hidden');
+    document.getElementById('catalog-results').classList.remove('hidden');
+    document.getElementById('catalog-search').value = '';
+    // Reset defaults
+    document.getElementById('input-sets').value = '3';
+    document.getElementById('input-reps').value = '8-12';
+    document.getElementById('input-rest').value = '60';
+  }
+
+  function selectExercise(ex) {
+    document.getElementById('exercise-ref-input').value = ex.id;
+    document.getElementById('selected-name').textContent = ex.name;
+    document.getElementById('selected-meta').textContent = ex.muscle_group + ' · ' + ex.equipment;
+    const img = document.getElementById('selected-img');
+    if (ex.image) {
+      img.src = ex.image;
+      img.classList.remove('hidden');
+    } else {
+      img.classList.add('hidden');
+    }
+    document.getElementById('selected-exercise').classList.remove('hidden');
+    document.getElementById('catalog-results').classList.add('hidden');
+
+    // Autofill defaults
+    if (ex.default_sets) document.getElementById('input-sets').value = ex.default_sets;
+    if (ex.default_reps) document.getElementById('input-reps').value = ex.default_reps;
+    if (ex.default_rest) document.getElementById('input-rest').value = ex.default_rest;
+  }
+
+  // Catalog search
+  const searchInput = document.getElementById('catalog-search');
+  const resultsContainer = document.getElementById('catalog-results');
+
+  searchInput.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    const q = this.value.trim();
+    if (q.length < 2) {
+      resultsContainer.innerHTML = '<p class="text-xs opacity-40 text-center py-2">Digite ao menos 2 caracteres...</p>';
+      return;
+    }
+    searchTimeout = setTimeout(() => {
+      fetch(`{% url 'exercise-catalog-search' %}?q=${encodeURIComponent(q)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.results.length === 0) {
+            resultsContainer.innerHTML = '<p class="text-xs opacity-40 text-center py-2">Nenhum exercício encontrado.</p>';
+            return;
+          }
+          resultsContainer.innerHTML = data.results.map(ex => `
+            <button type="button" onclick='selectExercise(${JSON.stringify(ex).replace(/'/g, "&#39;")})'
+              class="flex items-center gap-3 w-full text-left p-2 rounded-lg hover:bg-base-200 transition cursor-pointer border border-transparent hover:border-base-300">
+              ${ex.image
+                ? `<img src="${ex.image}" class="w-10 h-10 object-cover rounded-lg shrink-0" alt="">`
+                : `<div class="w-10 h-10 bg-base-200 rounded-lg flex items-center justify-center shrink-0">
+                    <svg class="w-4 h-4 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                  </div>`}
+              <div class="min-w-0 flex-1">
+                <p class="font-medium text-sm truncate">${ex.name}</p>
+                <p class="text-xs opacity-50">${ex.muscle_group} · ${ex.equipment}</p>
+              </div>
+            </button>
+          `).join('');
+        });
+    }, 300);
+  });
+
+  // Load initial results on page load
+  fetch(`{% url 'exercise-catalog-search' %}?q=`)
+    .then(r => r.json())
+    .then(data => {
+      if (data.results.length > 0) {
+        resultsContainer.innerHTML = data.results.slice(0, 8).map(ex => `
+          <button type="button" onclick='selectExercise(${JSON.stringify(ex).replace(/'/g, "&#39;")})'
+            class="flex items-center gap-3 w-full text-left p-2 rounded-lg hover:bg-base-200 transition cursor-pointer border border-transparent hover:border-base-300">
+            ${ex.image
+              ? `<img src="${ex.image}" class="w-10 h-10 object-cover rounded-lg shrink-0" alt="">`
+              : `<div class="w-10 h-10 bg-base-200 rounded-lg flex items-center justify-center shrink-0">
+                  <svg class="w-4 h-4 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                </div>`}
+            <div class="min-w-0 flex-1">
+              <p class="font-medium text-sm truncate">${ex.name}</p>
+              <p class="text-xs opacity-50">${ex.muscle_group} · ${ex.equipment}</p>
+            </div>
+          </button>
+        `).join('');
+      } else {
+        resultsContainer.innerHTML = '<p class="text-xs opacity-40 text-center py-2">Nenhum exercício no catálogo. <a href="{% url "exercise-catalog-create" %}" class="underline text-primary">Cadastre o primeiro</a>.</p>';
+      }
+    });
+
+  // Form validation
+  document.getElementById('exercise-form').addEventListener('submit', function(e) {
+    const ref = document.getElementById('exercise-ref-input').value;
+    const name = document.getElementById('exercise-name-input').value.trim();
+    if (!ref && !name) {
+      e.preventDefault();
+      alert('Selecione um exercício do catálogo ou mude para "Customizado" e informe um nome.');
+    }
+  });
+
+  // Muscle group color mapping
+  const muscleGroupColors = {
+    chest:      { bg: 'oklch(0.637 0.237 25.331 / 0.15)',  text: 'oklch(0.637 0.237 25.331)' },
+    back:       { bg: 'oklch(0.623 0.214 259.815 / 0.15)', text: 'oklch(0.623 0.214 259.815)' },
+    shoulders:  { bg: 'oklch(0.705 0.213 47.604 / 0.15)',  text: 'oklch(0.705 0.213 47.604)' },
+    biceps:     { bg: 'oklch(0.723 0.219 149.579 / 0.15)', text: 'oklch(0.723 0.219 149.579)' },
+    triceps:    { bg: 'oklch(0.606 0.25 292.717 / 0.15)',  text: 'oklch(0.606 0.25 292.717)' },
+    forearms:   { bg: 'oklch(0.645 0.246 16.439 / 0.15)',  text: 'oklch(0.645 0.246 16.439)' },
+    abs:        { bg: 'oklch(0.795 0.184 86.047 / 0.15)',  text: 'oklch(0.795 0.184 86.047)' },
+    quadriceps: { bg: 'oklch(0.541 0.281 293.009 / 0.15)', text: 'oklch(0.541 0.281 293.009)' },
+    hamstrings: { bg: 'oklch(0.577 0.245 27.325 / 0.15)',  text: 'oklch(0.577 0.245 27.325)' },
+    glutes:     { bg: 'oklch(0.592 0.249 0.584 / 0.15)',   text: 'oklch(0.592 0.249 0.584)' },
+    calves:     { bg: 'oklch(0.655 0.196 342.382 / 0.15)', text: 'oklch(0.655 0.196 342.382)' },
+    full_body:  { bg: 'oklch(0.7 0.15 180 / 0.15)',        text: 'oklch(0.7 0.15 180)' },
+    other:      { bg: 'oklch(0.6 0.0 0 / 0.15)',           text: 'oklch(0.6 0.0 0)' }
+  };
+  document.querySelectorAll('.muscle-group-badge').forEach(badge => {
+    const group = badge.dataset.group;
+    const colors = muscleGroupColors[group];
+    if (colors) {
+      badge.style.backgroundColor = colors.bg;
+      badge.style.color = colors.text;
+      badge.style.borderColor = 'transparent';
+    }
+  });
+</script>
 {% endblock %}

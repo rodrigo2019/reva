@@ -5,6 +5,133 @@ from django.urls import reverse
 from athletes.models import Athlete
 
 
+class MuscleGroup(models.TextChoices):
+	CHEST = "chest", "Peito"
+	BACK = "back", "Costas"
+	SHOULDERS = "shoulders", "Ombros"
+	BICEPS = "biceps", "Bíceps"
+	TRICEPS = "triceps", "Tríceps"
+	FOREARMS = "forearms", "Antebraço"
+	ABS = "abs", "Abdômen"
+	QUADRICEPS = "quadriceps", "Quadríceps"
+	HAMSTRINGS = "hamstrings", "Posteriores"
+	GLUTES = "glutes", "Glúteos"
+	CALVES = "calves", "Panturrilha"
+	FULL_BODY = "full_body", "Corpo inteiro"
+	OTHER = "other", "Outro"
+
+
+class Equipment(models.TextChoices):
+	BARBELL = "barbell", "Barra"
+	DUMBBELL = "dumbbell", "Haltere"
+	MACHINE = "machine", "Máquina"
+	CABLE = "cable", "Cabo/Polia"
+	BODYWEIGHT = "bodyweight", "Peso corporal"
+	KETTLEBELL = "kettlebell", "Kettlebell"
+	BAND = "band", "Elástico"
+	SMITH = "smith", "Smith Machine"
+	OTHER = "other", "Outro"
+
+
+def exercise_image_path(instance, filename):
+	ext = filename.rsplit(".", 1)[-1].lower()
+	return f"exercises/{instance.pk or 'tmp'}_{instance.slug}.{ext}"
+
+
+class Exercise(models.Model):
+	"""
+	Catálogo de exercícios com foto, grupo muscular e equipamento.
+	Pode ser global (created_by=None) ou criado por um treinador específico.
+	"""
+	name = models.CharField("Nome", max_length=150)
+	slug = models.SlugField(max_length=160, blank=True)
+	description = models.TextField("Descrição / instrução", blank=True)
+	muscle_group = models.CharField(
+		"Grupo muscular",
+		max_length=20,
+		choices=MuscleGroup.choices,
+		default=MuscleGroup.OTHER,
+	)
+	secondary_muscle = models.CharField(
+		"Músculo secundário",
+		max_length=20,
+		choices=MuscleGroup.choices,
+		blank=True,
+		default="",
+	)
+	equipment = models.CharField(
+		"Equipamento",
+		max_length=20,
+		choices=Equipment.choices,
+		default=Equipment.OTHER,
+	)
+	image = models.ImageField(
+		"Foto do exercício",
+		upload_to=exercise_image_path,
+		blank=True,
+		null=True,
+	)
+	video_url = models.URLField("URL de vídeo demonstrativo", blank=True)
+	default_sets = models.PositiveSmallIntegerField("Séries padrão", default=3)
+	default_reps = models.CharField("Reps padrão", max_length=30, default="8-12")
+	default_rest_seconds = models.PositiveIntegerField("Descanso padrão (s)", default=60)
+	tips = models.TextField("Dicas de execução", blank=True)
+	is_global = models.BooleanField(
+		"Disponível para todos",
+		default=False,
+		help_text="Exercícios globais ficam visíveis para todos os treinadores.",
+	)
+	created_by = models.ForeignKey(
+		settings.AUTH_USER_MODEL,
+		on_delete=models.SET_NULL,
+		null=True,
+		blank=True,
+		related_name="created_exercises",
+	)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		ordering = ["muscle_group", "name"]
+
+	def __str__(self):
+		return self.name
+
+	def save(self, *args, **kwargs):
+		if not self.slug:
+			from django.utils.text import slugify
+			base = slugify(self.name)
+			slug = base
+			counter = 1
+			while Exercise.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+				slug = f"{base}-{counter}"
+				counter += 1
+			self.slug = slug
+		super().save(*args, **kwargs)
+		# Re-save image with correct pk path if needed
+		if self.image and "tmp_" in self.image.name:
+			old_name = self.image.name
+			new_name = exercise_image_path(self, old_name.rsplit("/", 1)[-1])
+			if old_name != new_name:
+				import os
+				from django.core.files.storage import default_storage
+				if default_storage.exists(old_name):
+					default_storage.save(new_name, self.image)
+					default_storage.delete(old_name)
+					Exercise.objects.filter(pk=self.pk).update(image=new_name)
+
+	def get_absolute_url(self):
+		return reverse("exercise-catalog-detail", kwargs={"pk": self.pk})
+
+	@property
+	def muscle_group_label(self):
+		return self.get_muscle_group_display()
+
+	@property
+	def equipment_label(self):
+		return self.get_equipment_display()
+
+
 class WorkoutPlan(models.Model):
 	athlete = models.ForeignKey(Athlete, on_delete=models.CASCADE, related_name="workout_plans")
 	name = models.CharField(max_length=120)
@@ -29,7 +156,15 @@ TRACKED_FIELDS = ("sets", "reps", "current_load_kg", "rest_seconds")
 
 class ExercisePrescription(models.Model):
 	workout = models.ForeignKey(WorkoutPlan, on_delete=models.CASCADE, related_name="exercises")
-	name = models.CharField(max_length=120)
+	exercise_ref = models.ForeignKey(
+		Exercise,
+		on_delete=models.SET_NULL,
+		null=True,
+		blank=True,
+		related_name="prescriptions",
+		verbose_name="Exercício do catálogo",
+	)
+	name = models.CharField(max_length=120, blank=True)
 	sets = models.PositiveSmallIntegerField(default=3)
 	reps = models.CharField(max_length=30, default="8-12")
 	current_load_kg = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
@@ -40,6 +175,30 @@ class ExercisePrescription(models.Model):
 	class Meta:
 		ordering = ["exercise_order", "id"]
 		unique_together = ("workout", "exercise_order")
+
+	@property
+	def display_name(self):
+		if self.exercise_ref:
+			return self.exercise_ref.name
+		return self.name or "Exercício sem nome"
+
+	@property
+	def image(self):
+		if self.exercise_ref and self.exercise_ref.image:
+			return self.exercise_ref.image
+		return None
+
+	@property
+	def muscle_group_label(self):
+		if self.exercise_ref:
+			return self.exercise_ref.muscle_group_label
+		return ""
+
+	@property
+	def equipment_label(self):
+		if self.exercise_ref:
+			return self.exercise_ref.equipment_label
+		return ""
 
 	def save(self, *args, **kwargs):
 		is_create = self.pk is None
@@ -83,7 +242,7 @@ class ExercisePrescription(models.Model):
 			)
 
 	def __str__(self):
-		return self.name
+		return self.display_name
 
 
 class LoadUpdate(models.Model):

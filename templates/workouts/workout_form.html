@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Novo Treino — REVA{% endblock %}
+{% block title %}{% if editing %}Editar Treino{% else %}Novo Treino{% endif %} — REVA{% endblock %}
 {% block nav_workouts %}active{% endblock %}
 
 {% block content %}
@@ -8,41 +8,49 @@
     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
     Voltar para treinos
   </a>
-  <h1 class="text-3xl font-extrabold">Novo Treino</h1>
-  <p class="opacity-50 mt-1">Preencha os dados para criar um treino para o aluno.</p>
+  <h1 class="text-3xl font-extrabold">{% if editing %}Editar Treino{% else %}Novo Treino{% endif %}</h1>
+  <p class="opacity-50 mt-1">{% if editing %}Atualize os dados do treino.{% else %}Preencha os dados para criar um treino para o aluno.{% endif %}</p>
 </div>
 
 <div class="max-w-2xl">
   <div class="bg-base-100 rounded-2xl border border-base-300 p-6">
+    {% if form.errors %}
+      <div role="alert" class="alert alert-error mb-4">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span>Corrija os erros abaixo para continuar.</span>
+      </div>
+    {% endif %}
     <form method="post" class="space-y-4">
       {% csrf_token %}
 
       <fieldset class="fieldset">
         <legend class="fieldset-legend">Aluno</legend>
-        <select class="select w-full" name="athlete" required>
-          <option value="" disabled {% if not form.initial.athlete %}selected{% endif %}>Selecione o aluno</option>
+        <select class="select w-full{% if form.athlete.errors %} select-error{% endif %}" name="athlete" required>
+          <option value="" disabled {% if not form.athlete.value %}selected{% endif %}>Selecione o aluno</option>
           {% for option in form.athlete.field.queryset %}
-            <option value="{{ option.pk }}" {% if form.initial.athlete == option.pk %}selected{% endif %}>{{ option.user.get_full_name|default:option.user.username }}</option>
+            <option value="{{ option.pk }}" {% if form.athlete.value|stringformat:"s" == option.pk|stringformat:"s" %}selected{% endif %}>{{ option.user.get_full_name|default:option.user.username }}</option>
           {% endfor %}
         </select>
+        {% if form.athlete.errors %}<p class="text-error text-xs mt-1">{{ form.athlete.errors.0 }}</p>{% endif %}
       </fieldset>
 
       <fieldset class="fieldset">
         <legend class="fieldset-legend">Nome do treino</legend>
-        <input class="input w-full" type="text" name="name" placeholder="ex: Treino A — Superior" required>
+        <input class="input w-full{% if form.name.errors %} input-error{% endif %}" type="text" name="name" value="{{ form.name.value|default:'' }}" placeholder="ex: Treino A — Superior" required>
+        {% if form.name.errors %}<p class="text-error text-xs mt-1">{{ form.name.errors.0 }}</p>{% endif %}
       </fieldset>
 
       <fieldset class="fieldset">
         <legend class="fieldset-legend">Objetivo</legend>
-        <input class="input w-full" type="text" name="objective" placeholder="ex: Hipertrofia de membros superiores">
+        <input class="input w-full" type="text" name="objective" value="{{ form.objective.value|default:'' }}" placeholder="ex: Hipertrofia de membros superiores">
       </fieldset>
 
       <label class="flex items-center gap-3 cursor-pointer">
-        <input class="toggle toggle-primary" type="checkbox" name="is_active" checked>
+        <input class="toggle toggle-primary" type="checkbox" name="is_active" {% if form.is_active.value %}checked{% endif %}>
         <span class="label-text">Treino ativo</span>
       </label>
 
-      <button class="btn btn-primary btn-block" type="submit">Criar treino</button>
+      <button class="btn btn-primary btn-block" type="submit">{% if editing %}Salvar alterações{% else %}Criar treino{% endif %}</button>
     </form>
   </div>
 </div>

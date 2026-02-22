@@ -1,6 +1,14 @@
 from django.contrib import admin
 
-from .models import ExercisePrescription, ExerciseProgressLog, LoadUpdate, WorkoutPlan
+from .models import Exercise, ExercisePrescription, ExerciseProgressLog, LoadUpdate, WorkoutPlan
+
+
+@admin.register(Exercise)
+class ExerciseAdmin(admin.ModelAdmin):
+	list_display = ("name", "muscle_group", "equipment", "is_global", "created_by", "updated_at")
+	list_filter = ("muscle_group", "equipment", "is_global")
+	search_fields = ("name", "description")
+	prepopulated_fields = {"slug": ("name",)}
 
 
 @admin.register(WorkoutPlan)

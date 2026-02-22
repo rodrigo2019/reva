@@ -65,7 +65,12 @@
       </div>
     </div>
   {% empty %}
-    <p class="text-sm opacity-50">Nenhuma atualização registrada ainda.</p>
+    <div class="flex flex-col items-center py-8 opacity-60">
+      <svg class="w-12 h-12 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+      <p class="font-semibold mb-1">Nenhuma atualização registrada ainda</p>
+      <p class="text-sm mb-4">Seu treinador registrará as evoluções de carga por aqui.</p>
+      <a href="{% url 'my-progress' %}" class="btn btn-primary btn-sm">Ver Meu Progresso</a>
+    </div>
   {% endfor %}
 </div>
 {% endblock %}

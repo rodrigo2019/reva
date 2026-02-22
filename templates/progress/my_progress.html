@@ -29,13 +29,21 @@
 </div>
 
 <div class="bg-base-100 rounded-2xl border border-base-300 p-6 space-y-5">
-  <!-- exercise selector -->
-  <fieldset class="fieldset max-w-xs">
-    <legend class="fieldset-legend">Exercício</legend>
-    <select id="exercise-select" class="select w-full">
-      <option value="" disabled selected>Selecione um exercício</option>
-    </select>
-  </fieldset>
+  <!-- two cascading selectors -->
+  <div class="flex flex-col sm:flex-row gap-4">
+    <fieldset class="fieldset flex-1">
+      <legend class="fieldset-legend">Treino</legend>
+      <select id="workout-select" class="select w-full">
+        <option value="" disabled selected>Selecione um treino</option>
+      </select>
+    </fieldset>
+    <fieldset class="fieldset flex-1">
+      <legend class="fieldset-legend">Exercício</legend>
+      <select id="exercise-select" class="select w-full" disabled>
+        <option value="" disabled selected>Selecione um exercício</option>
+      </select>
+    </fieldset>
+  </div>
 
   <!-- chart area -->
   <div class="w-full" style="min-height:320px;">
@@ -52,29 +60,60 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  const payload = {{ chart_payload|safe }};
-  const names = Object.keys(payload);
-  const selector = document.getElementById('exercise-select');
+  const payload = {{ chart_payload|safe }};  // array of {id, exercise, workout, points}
+  const workoutSelect = document.getElementById('workout-select');
+  const exerciseSelect = document.getElementById('exercise-select');
   const emptyState = document.getElementById('empty-state');
 
-  // populate selector
-  names.forEach((name) => {
+  // Build lookup map by id
+  const payloadById = {};
+  payload.forEach(item => { payloadById[item.id] = item; });
+
+  // Group by workout name (preserve insertion order)
+  const byWorkout = {};
+  payload.forEach(item => {
+    if (!byWorkout[item.workout]) byWorkout[item.workout] = [];
+    byWorkout[item.workout].push(item);
+  });
+  const workoutNames = Object.keys(byWorkout);
+
+  // Populate workout dropdown
+  workoutNames.forEach(name => {
     const opt = document.createElement('option');
     opt.value = name;
     opt.textContent = name;
-    selector.appendChild(opt);
+    workoutSelect.appendChild(opt);
   });
 
-  // stats helpers
+  // Populate exercise dropdown for a given workout
+  function populateExercises(workoutName) {
+    exerciseSelect.innerHTML = '<option value="" disabled selected>Selecione um exercício</option>';
+    const items = byWorkout[workoutName] || [];
+    items.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item.id;
+      opt.textContent = item.exercise;
+      exerciseSelect.appendChild(opt);
+    });
+    exerciseSelect.disabled = items.length === 0;
+    // Auto-select first exercise
+    if (items.length > 0) {
+      exerciseSelect.value = items[0].id;
+      renderItem(items[0].id);
+    } else {
+      clearChart();
+    }
+  }
+
+  // Stats (global totals)
   function updateStats() {
     let totalRecords = 0;
     let maxLoad = 0;
-    names.forEach(n => {
-      const pts = payload[n] || [];
-      totalRecords += pts.length;
-      pts.forEach(p => { if (p.load > maxLoad) maxLoad = p.load; });
+    payload.forEach(item => {
+      totalRecords += item.points.length;
+      item.points.forEach(p => { if (p.load > maxLoad) maxLoad = p.load; });
     });
-    document.getElementById('stat-exercises').textContent = names.length;
+    document.getElementById('stat-exercises').textContent = payload.length;
     document.getElementById('stat-records').textContent = totalRecords;
     document.getElementById('stat-max').textContent = maxLoad > 0 ? maxLoad + ' kg' : '—';
   }
@@ -89,7 +128,7 @@
     return (pct >= 0 ? '+' : '') + pct + '%';
   }
 
-  // chart
+  // Chart
   const ctx = document.getElementById('progress-chart').getContext('2d');
   const chart = new Chart(ctx, {
     type: 'line',
@@ -120,9 +159,7 @@
           bodyColor: '#fff',
           padding: 10,
           cornerRadius: 8,
-          callbacks: {
-            label: (c) => c.parsed.y + ' kg'
-          }
+          callbacks: { label: (c) => c.parsed.y + ' kg' }
         }
       },
       scales: {
@@ -139,22 +176,35 @@
     }
   });
 
-  function renderExercise(name) {
-    const points = payload[name] || [];
+  function clearChart() {
+    chart.data.labels = [];
+    chart.data.datasets[0].data = [];
+    chart.update();
+    document.getElementById('stat-growth').textContent = '—';
+  }
+
+  function renderItem(id) {
+    const item = payloadById[id];
+    if (!item) return;
+    const points = item.points;
     chart.data.labels = points.map(p => p.date);
     chart.data.datasets[0].data = points.map(p => p.load);
+    chart.data.datasets[0].label = item.exercise;
     chart.update();
     document.getElementById('stat-growth').textContent = calcGrowth(points);
   }
 
-  // init
-  if (names.length === 0) {
-    emptyState.classList.remove('hidden');
-  } else {
-    selector.value = names[0];
-    renderExercise(names[0]);
-  }
+  // Events
+  workoutSelect.addEventListener('change', (e) => populateExercises(e.target.value));
+  exerciseSelect.addEventListener('change', (e) => renderItem(Number(e.target.value)));
 
-  selector.addEventListener('change', (e) => renderExercise(e.target.value));
+  // Init
+  if (payload.length === 0) {
+    emptyState.classList.remove('hidden');
+    document.getElementById('progress-chart').style.display = 'none';
+  } else {
+    workoutSelect.value = workoutNames[0];
+    populateExercises(workoutNames[0]);
+  }
 </script>
 {% endblock %}
