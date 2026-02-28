@@ -1,7 +1,7 @@
 import json
 
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -10,14 +10,10 @@ from django.views import View
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from athletes.models import Athlete
+from core.mixins import TrainerRequiredMixin
 
 from .forms import ExerciseAlternativeForm, ExerciseForm, ExerciseUpdateForm, LoadUpdateForm, TrainingPlanForm, WorkoutPlanForm
 from .models import ExerciseAlternative, ExercisePrescription, ExerciseProgressLog, LoadUpdate, TrainingPlan, WorkoutPlan
-
-
-class TrainerRequiredMixin(UserPassesTestMixin):
-	def test_func(self):
-		return self.request.user.is_authenticated and self.request.user.is_trainer
 
 
 # ──────────────────────────────────────────────

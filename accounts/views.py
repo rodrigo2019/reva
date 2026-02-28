@@ -1,19 +1,14 @@
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+import json
+
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Count, Max
+from django.db.models.functions import TruncDate
 from django.utils import timezone
 from django.views.generic import TemplateView
 
 from athletes.models import Athlete
+from core.mixins import StudentRequiredMixin, TrainerRequiredMixin
 from workouts.models import ExercisePrescription, LoadUpdate, TrainingPlan, WorkoutPlan
-
-
-class TrainerRequiredMixin(UserPassesTestMixin):
-    def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_trainer
-
-
-class StudentRequiredMixin(UserPassesTestMixin):
-    def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_student
 
 
 class TrainerDashboardView(LoginRequiredMixin, TrainerRequiredMixin, TemplateView):
@@ -38,7 +33,6 @@ class TrainerDashboardView(LoginRequiredMixin, TrainerRequiredMixin, TemplateVie
         )
 
         # Annotate athletes with last activity date
-        from django.db.models import Max
         athletes_with_activity = athletes.annotate(
             last_activity=Max("workout_plans__exercises__load_updates__created_at")
         ).order_by("-last_activity")
@@ -46,9 +40,6 @@ class TrainerDashboardView(LoginRequiredMixin, TrainerRequiredMixin, TemplateVie
         ctx["seven_days_ago"] = seven_days_ago
 
         # Weekly activity data (last 7 days) — count of load updates per day
-        import json
-        from django.db.models.functions import TruncDate
-        from django.db.models import Count
         daily_updates = (
             LoadUpdate.objects.filter(
                 exercise__workout__created_by=user,

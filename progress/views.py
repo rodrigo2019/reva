@@ -1,14 +1,10 @@
 import json
 
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 
+from core.mixins import StudentRequiredMixin
 from workouts.models import ExercisePrescription
-
-
-class StudentRequiredMixin(UserPassesTestMixin):
-	def test_func(self):
-		return self.request.user.is_authenticated and self.request.user.is_student
 
 
 class StudentProgressView(LoginRequiredMixin, StudentRequiredMixin, TemplateView):

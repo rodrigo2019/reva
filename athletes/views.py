@@ -1,21 +1,18 @@
 import json
 
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views import View
 from django.views.generic import DetailView, ListView, TemplateView
 
+from core.mixins import TrainerRequiredMixin
 from workouts.models import ExerciseProgressLog, ExercisePrescription, TrainingPlan, WorkoutPlan
 
 from .forms import AnamnesisForm, PhysicalAssessmentForm, SetStudentPasswordForm, StudentRegistrationForm, StudentUpdateForm
 from .models import Anamnesis, Athlete, PhysicalAssessment
-
-
-class TrainerRequiredMixin(UserPassesTestMixin):
-    def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.is_trainer
 
 
 class StudentListView(LoginRequiredMixin, TrainerRequiredMixin, ListView):
@@ -33,7 +30,6 @@ class StudentListView(LoginRequiredMixin, TrainerRequiredMixin, ListView):
         q = self.request.GET.get("q", "").strip()
         sort = self.request.GET.get("sort", "nome")
         if q:
-            from django.db.models import Q
             qs = qs.filter(Q(user__first_name__icontains=q) | Q(user__last_name__icontains=q) | Q(user__username__icontains=q))
         if sort == "recente":
             qs = qs.order_by("-created_at")
@@ -60,8 +56,6 @@ class StudentCreateView(LoginRequiredMixin, TrainerRequiredMixin, View):
         if form.is_valid():
             athlete = form.save(trainer=request.user)
             messages.success(request, f"Aluno {athlete} cadastrado com sucesso!")
-            from django.shortcuts import redirect
-
             return redirect("student-list")
         return render(request, self.template_name, {"form": form})
 
@@ -77,13 +71,21 @@ class StudentDetailView(LoginRequiredMixin, TrainerRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         student = self.object
+
+        # Single queryset with all required prefetches — reused for list, chart, and standalone
         workouts = (
             WorkoutPlan.objects.filter(athlete=student)
-            .prefetch_related("exercises__progress_logs")
+            .select_related("plan")
+            .prefetch_related(
+                "exercises__exercise_ref",
+                "exercises__load_updates",
+                "exercises__progress_logs",
+            )
             .order_by("-updated_at")
         )
         ctx["workouts"] = workouts
-        ctx["active_workouts"] = workouts.filter(is_active=True).count()
+        ctx["active_workouts"] = sum(1 for w in workouts if w.is_active)
+        ctx["standalone_workouts"] = [w for w in workouts if w.plan_id is None]
 
         # Training plans with nested workouts
         ctx["plans"] = (
@@ -91,8 +93,6 @@ class StudentDetailView(LoginRequiredMixin, TrainerRequiredMixin, DetailView):
             .prefetch_related("workouts__exercises")
             .order_by("-is_active", "-created_at")
         )
-        # Standalone workouts (not in any plan)
-        ctx["standalone_workouts"] = workouts.filter(plan__isnull=True)
 
         ctx["recent_logs"] = (
             ExerciseProgressLog.objects.filter(exercise__workout__athlete=student)
@@ -104,14 +104,9 @@ class StudentDetailView(LoginRequiredMixin, TrainerRequiredMixin, DetailView):
         ctx["anamnesis"] = student.latest_anamnesis
         ctx["latest_assessment"] = student.latest_assessment
 
-        # Build chart data grouped by workout
-        workouts_for_chart = (
-            WorkoutPlan.objects.filter(athlete=student)
-            .prefetch_related("exercises__exercise_ref", "exercises__load_updates")
-            .order_by("name")
-        )
+        # Build chart data grouped by workout — reuse already-prefetched queryset
         chart_data = {}
-        for workout in workouts_for_chart:
+        for workout in sorted(workouts, key=lambda w: w.name):
             exercises_list = []
             for exercise in workout.exercises.all():
                 points = [
@@ -119,7 +114,7 @@ class StudentDetailView(LoginRequiredMixin, TrainerRequiredMixin, DetailView):
                         "date": u.created_at.strftime("%d/%m/%Y"),
                         "load": float(u.new_load_kg),
                     }
-                    for u in exercise.load_updates.order_by("created_at")
+                    for u in exercise.load_updates.all()
                     if u.new_load_kg is not None
                 ]
                 if points:

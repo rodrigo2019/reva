@@ -1,9 +1,12 @@
+import logging
 import os
 
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from workouts.models import LoadUpdate
+
+logger = logging.getLogger(__name__)
 
 
 def _build_progress_context(athlete):
@@ -36,6 +39,11 @@ def generate_contextual_reply(athlete, question):
         response = llm.invoke([SystemMessage(content=system_prompt), HumanMessage(content=question)])
         return response.content
     except Exception:
+        logger.exception(
+            "Falha ao gerar resposta contextual para o atleta %s com modelo %s",
+            getattr(athlete, "pk", "desconhecido"),
+            model_name,
+        )
         return (
             "Pelo histórico recente, sua evolução parece consistente. "
             "Mantenha a técnica correta e alinhe qualquer aumento de carga com seu treinador."
