@@ -1,3 +1,4 @@
+from django.contrib import messages as django_messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import redirect
 from django.views import View
@@ -10,6 +11,12 @@ from .services import generate_contextual_reply
 class StudentRequiredMixin(UserPassesTestMixin):
 	def test_func(self):
 		return self.request.user.is_authenticated and self.request.user.is_student
+
+	def handle_no_permission(self):
+		if self.request.user.is_authenticated:
+			django_messages.warning(self.request, "O chat IA está disponível apenas para alunos.")
+			return redirect("trainer-dashboard")
+		return super().handle_no_permission()
 
 
 class ChatView(LoginRequiredMixin, StudentRequiredMixin, TemplateView):

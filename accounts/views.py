@@ -28,7 +28,7 @@ class TrainerDashboardView(LoginRequiredMixin, TrainerRequiredMixin, TemplateVie
         ctx["exercise_count"] = ExercisePrescription.objects.filter(workout__created_by=user).count()
         ctx["recent_updates"] = (
             LoadUpdate.objects.filter(exercise__workout__created_by=user)
-            .select_related("exercise__workout__athlete__user")
+            .select_related("exercise__exercise_ref", "exercise__workout__athlete__user")
             .order_by("-created_at")[:10]
         )
 

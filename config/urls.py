@@ -29,6 +29,7 @@ urlpatterns = [
     path("progresso/", include("progress.urls")),
     path("chat/", include("ai_chat.urls")),
     path("assistente/api/", include("ai_assistant.urls")),
+    path("agenda/", include("schedule.urls")),
 ]
 
 if settings.DEBUG:

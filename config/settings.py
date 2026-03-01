@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "progress",
     "ai_chat",
     "ai_assistant",
+    "schedule",
 ]
 
 MIDDLEWARE = [

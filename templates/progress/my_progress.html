@@ -52,11 +52,17 @@
     <canvas id="progress-chart"></canvas>
   </div>
 
-  <!-- empty state -->
+  <!-- empty state (no data at all) -->
   <div id="empty-state" class="hidden flex flex-col items-center justify-center py-12 opacity-50">
     <svg class="w-16 h-16 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6m6 0h6m-6 0V9a2 2 0 012-2h2a2 2 0 012 2v10m6 0v-4a2 2 0 00-2-2h-2a2 2 0 00-2 2v4"/></svg>
     <p class="font-semibold">Nenhum dado de carga ainda</p>
     <p class="text-sm">Peça ao seu treinador para registrar suas cargas.</p>
+  </div>
+
+  <!-- few-data hint (only 1 data point — can't draw a meaningful line) -->
+  <div id="few-data-hint" class="hidden items-start gap-3 bg-info/10 border border-info/20 rounded-xl px-4 py-3 text-sm text-info">
+    <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    <span>Apenas 1 registro encontrado. Continue registrando para ver sua curva de evolução.</span>
   </div>
 </div>
 
@@ -66,6 +72,7 @@
   const workoutSelect = document.getElementById('workout-select');
   const exerciseSelect = document.getElementById('exercise-select');
   const emptyState = document.getElementById('empty-state');
+  const fewDataHint = document.getElementById('few-data-hint');
 
   // Build lookup map by id
   const payloadById = {};
@@ -111,13 +118,27 @@
   function updateStats() {
     let totalRecords = 0;
     let maxLoad = 0;
+    let growthSum = 0;
+    let growthCount = 0;
     payload.forEach(item => {
       totalRecords += item.points.length;
       item.points.forEach(p => { if (p.load > maxLoad) maxLoad = p.load; });
+      if (item.points.length >= 2) {
+        const first = item.points[0].load;
+        const last = item.points[item.points.length - 1].load;
+        if (first > 0) {
+          growthSum += ((last - first) / first) * 100;
+          growthCount++;
+        }
+      }
     });
     document.getElementById('stat-exercises').textContent = payload.length;
     document.getElementById('stat-records').textContent = totalRecords;
     document.getElementById('stat-max').textContent = maxLoad > 0 ? maxLoad + ' kg' : '—';
+    if (growthCount > 0) {
+      const avg = (growthSum / growthCount).toFixed(1);
+      document.getElementById('stat-growth').textContent = (avg >= 0 ? '+' : '') + avg + '%';
+    }
   }
   updateStats();
 
@@ -194,6 +215,8 @@
     chart.data.datasets[0].label = item.exercise;
     chart.update();
     document.getElementById('stat-growth').textContent = calcGrowth(points);
+    fewDataHint.classList.toggle('flex', points.length === 1);
+    fewDataHint.classList.toggle('hidden', points.length !== 1);
   }
 
   // Events
