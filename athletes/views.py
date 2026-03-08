@@ -11,7 +11,7 @@ from django.views.generic import DetailView, ListView, TemplateView
 from core.mixins import TrainerRequiredMixin
 from workouts.models import ExerciseProgressLog, ExercisePrescription, TrainingPlan, WorkoutPlan
 
-from .forms import AnamnesisForm, PhysicalAssessmentForm, SetStudentPasswordForm, StudentRegistrationForm, StudentUpdateForm
+from .forms import AnamnesisForm, PhysicalAssessmentForm, StudentRegistrationForm, StudentUpdateForm
 from .models import Anamnesis, Athlete, PhysicalAssessment
 
 
@@ -53,9 +53,10 @@ class StudentCreateView(LoginRequiredMixin, TrainerRequiredMixin, View):
 
     def post(self, request):
         form = StudentRegistrationForm(request.POST)
+        form.trainer = request.user
         if form.is_valid():
             athlete = form.save(trainer=request.user)
-            messages.success(request, f"Aluno {athlete} cadastrado com sucesso!")
+            messages.success(request, f"Aluno {athlete} vinculado com sucesso!")
             return redirect("student-list")
         return render(request, self.template_name, {"form": form})
 
@@ -163,10 +164,9 @@ class StudentDeleteView(LoginRequiredMixin, TrainerRequiredMixin, View):
 
     def post(self, request, pk):
         athlete = self._get_athlete(request, pk)
-        user = athlete.user
+        student_name = str(athlete)
         athlete.delete()
-        user.delete()
-        messages.success(request, "Aluno excluído com sucesso.")
+        messages.success(request, f"Aluno {student_name} desvinculado com sucesso. A conta do usuário foi preservada.")
         return redirect("student-list")
 
 
@@ -210,25 +210,24 @@ class TrainerStudentProgressView(LoginRequiredMixin, TrainerRequiredMixin, Templ
 
 
 class SetStudentPasswordView(LoginRequiredMixin, TrainerRequiredMixin, View):
-    template_name = "athletes/student_set_password.html"
-
     def _get_athlete(self, request, pk):
         return get_object_or_404(Athlete, pk=pk, trainer=request.user)
 
     def get(self, request, pk):
         athlete = self._get_athlete(request, pk)
-        form = SetStudentPasswordForm()
-        return render(request, self.template_name, {"form": form, "student": athlete})
+        messages.info(
+            request,
+            f"O acesso de {athlete} é definido pelo próprio aluno no cadastro da plataforma.",
+        )
+        return redirect("student-detail", pk=athlete.pk)
 
     def post(self, request, pk):
         athlete = self._get_athlete(request, pk)
-        form = SetStudentPasswordForm(request.POST)
-        if form.is_valid():
-            athlete.user.set_password(form.cleaned_data["password"])
-            athlete.user.save()
-            messages.success(request, f"Senha de {athlete} definida com sucesso!")
-            return redirect("student-detail", pk=athlete.pk)
-        return render(request, self.template_name, {"form": form, "student": athlete})
+        messages.info(
+            request,
+            f"O acesso de {athlete} é definido pelo próprio aluno no cadastro da plataforma.",
+        )
+        return redirect("student-detail", pk=athlete.pk)
 
 
 # ===========================================================================

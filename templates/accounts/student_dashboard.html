@@ -10,7 +10,18 @@
   <p class="opacity-50 mt-1 text-sm sm:text-base">Acompanhe seus treinos, evolução e converse com a IA.</p>
 </div>
 
+{% if not is_linked %}
+<div class="bg-warning/10 border border-warning/40 rounded-2xl p-5 mb-6">
+  <h2 class="font-bold text-lg mb-2">Perfil aguardando vínculo</h2>
+  <p class="text-sm opacity-70">
+    Sua conta foi criada com sucesso, mas ainda não foi vinculada a um treinador. Assim que o vínculo for feito pelo seu e-mail,
+    seus treinos e recursos de acompanhamento ficarão disponíveis.
+  </p>
+</div>
+{% endif %}
+
 <!-- Stats -->
+{% if is_linked %}
 <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
   <div class="stat bg-base-100 rounded-2xl border border-base-300 p-3 sm:p-4">
     <div class="stat-title text-xs">Treinos ativos</div>
@@ -75,4 +86,5 @@
     </div>
   {% endfor %}
 </div>
+{% endif %}
 {% endblock %}

@@ -1,5 +1,6 @@
 import json
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count, Max
 from django.db.models.functions import TruncDate
@@ -69,6 +70,15 @@ class StudentDashboardView(LoginRequiredMixin, StudentRequiredMixin, TemplateVie
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         profile = self.request.user.get_athlete_profile()
+
+        if profile is None:
+            ctx["is_linked"] = False
+            ctx["workout_count"] = 0
+            ctx["exercise_count"] = 0
+            ctx["recent_updates"] = []
+            return ctx
+
+        ctx["is_linked"] = True
         ctx["workout_count"] = WorkoutPlan.objects.filter(athlete=profile, is_active=True).count()
         ctx["exercise_count"] = ExercisePrescription.objects.filter(workout__athlete=profile).count()
         ctx["recent_updates"] = (

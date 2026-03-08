@@ -19,27 +19,5 @@ class User(AbstractUser):
 		return self.role == UserRole.STUDENT
 
 	def get_athlete_profile(self):
-		"""Return the Athlete profile, creating one on-the-fly if missing."""
-		from athletes.models import Athlete
-
-		try:
-			return self.athlete_profile
-		except Athlete.DoesNotExist:
-			# Auto-create profile; pick first trainer available or provision a default trainer.
-			trainer = User.objects.filter(role=UserRole.TRAINER).first()
-			if trainer is None:
-				base_username = "reva_trainer"
-				username = base_username
-				counter = 1
-				while User.objects.filter(username=username).exists():
-					counter += 1
-					username = f"{base_username}_{counter}"
-
-				trainer = User.objects.create_user(
-					username=username,
-					first_name="REVA",
-					last_name="Trainer",
-					role=UserRole.TRAINER,
-					is_staff=True,
-				)
-			return Athlete.objects.create(user=self, trainer=trainer)
+		"""Return the linked Athlete profile, if the student has already been correlated to a trainer."""
+		return getattr(self, "athlete_profile", None)

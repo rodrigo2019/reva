@@ -22,6 +22,12 @@ class StudentRequiredMixin(UserPassesTestMixin):
 class ChatView(LoginRequiredMixin, StudentRequiredMixin, TemplateView):
 	template_name = "ai_chat/chat.html"
 
+	def get(self, request, *args, **kwargs):
+		if request.user.get_athlete_profile() is None:
+			django_messages.warning(request, "Seu perfil ainda não foi vinculado a um treinador.")
+			return redirect("student-dashboard")
+		return super().get(request, *args, **kwargs)
+
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
 		profile = self.request.user.get_athlete_profile()
@@ -38,6 +44,10 @@ class ChatMessageCreateView(LoginRequiredMixin, StudentRequiredMixin, View):
 			return redirect("ai-chat")
 
 		profile = request.user.get_athlete_profile()
+		if profile is None:
+			django_messages.warning(request, "Seu perfil ainda não foi vinculado a um treinador.")
+			return redirect("student-dashboard")
+
 		session, _ = ChatSession.objects.get_or_create(athlete=profile)
 		ChatMessage.objects.create(session=session, role=ChatMessage.Role.USER, content=question)
 
