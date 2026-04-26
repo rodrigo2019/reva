@@ -1,0 +1,757 @@
+{% extends 'base.html' %}
+{% block screen_id %}student-profile{% endblock %}
+{% block assistant_screen_name %}Student Profile: {{ student.user.get_full_name }}{% endblock %}
+{% block title %}Profile — {{ student.user.get_full_name }} — REVA{% endblock %}
+{% block nav_students %}active{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="mb-6">
+  <a href="{% url 'student-detail' student.pk %}" class="text-sm opacity-50 hover:opacity-80 transition inline-flex items-center gap-1 mb-2">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    Back to student
+  </a>
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div class="flex items-center gap-3 sm:gap-4">
+      <div class="avatar placeholder">
+        <div class="bg-primary text-primary-content w-11 sm:w-14 rounded-full">
+          <span class="text-base sm:text-xl font-bold">{{ student.user.first_name|make_list|first|upper }}{{ student.user.last_name|make_list|first|upper }}</span>
+        </div>
+      </div>
+      <div>
+        <h1 class="text-xl sm:text-3xl font-extrabold">Student Profile</h1>
+        <p class="opacity-50 mt-0.5 text-xs sm:text-base">{{ student.user.get_full_name }} · Cadastrado em {{ student.created_at|date:"d/m/Y" }}</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <a href="{% url 'student-anamnesis' student.pk %}" class="btn btn-primary btn-sm gap-1">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        {% if anamnesis %}Edit Health Profile{% else %}Add Health Profile{% endif %}
+      </a>
+      <a href="{% url 'student-assessment-create' student.pk %}" class="btn btn-ghost btn-sm gap-1">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        New Assessment
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Stats Row -->
+{% if latest_assessment %}
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+  {% if latest_assessment.weight_kg %}
+  <div class="stat bg-base-100 rounded-2xl border border-base-300 p-3">
+    <div class="stat-title text-xs">Peso</div>
+    <div class="stat-value text-xl text-primary">{{ latest_assessment.weight_kg }}kg</div>
+  </div>
+  {% endif %}
+  {% if latest_assessment.height_cm %}
+  <div class="stat bg-base-100 rounded-2xl border border-base-300 p-3">
+    <div class="stat-title text-xs">Altura</div>
+    <div class="stat-value text-xl">{{ latest_assessment.height_cm }}cm</div>
+  </div>
+  {% endif %}
+  {% if latest_assessment.bmi %}
+  <div class="stat bg-base-100 rounded-2xl border border-base-300 p-3">
+    <div class="stat-title text-xs">IMC</div>
+    <div class="stat-value text-xl {% if latest_assessment.bmi >= 25 %}text-warning{% elif latest_assessment.bmi < 18.5 %}text-warning{% else %}text-success{% endif %}">{{ latest_assessment.bmi }}</div>
+    <div class="stat-desc text-xs">{{ latest_assessment.bmi_classification }}</div>
+  </div>
+  {% endif %}
+  {% if latest_assessment.body_fat_percentage %}
+  <div class="stat bg-base-100 rounded-2xl border border-base-300 p-3">
+    <div class="stat-title text-xs">Body Fat</div>
+    <div class="stat-value text-xl text-secondary">{{ latest_assessment.body_fat_percentage }}%</div>
+  </div>
+  {% endif %}
+  {% if latest_assessment.lean_mass_kg %}
+  <div class="stat bg-base-100 rounded-2xl border border-base-300 p-3">
+    <div class="stat-title text-xs">Lean Mass</div>
+    <div class="stat-value text-xl text-success">{{ latest_assessment.lean_mass_kg }}kg</div>
+  </div>
+  {% endif %}
+  {% if latest_assessment.waist_hip_ratio %}
+  <div class="stat bg-base-100 rounded-2xl border border-base-300 p-3">
+    <div class="stat-title text-xs">RCQ</div>
+    <div class="stat-value text-xl text-accent">{{ latest_assessment.waist_hip_ratio }}</div>
+    <div class="stat-desc text-xs">Waist/Hip</div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Tabs -->
+<div class="tabs tabs-border mb-6">
+  <a class="tab {% if active_tab == 'anamnesis' %}tab-active{% endif %}" href="?tab=anamnesis">
+    <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    Health Profile
+  </a>
+  <a class="tab {% if active_tab == 'assessments' %}tab-active{% endif %}" href="?tab=assessments">
+    <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+    Assessments
+  </a>
+  <a class="tab {% if active_tab == 'evolution' %}tab-active{% endif %}" href="?tab=evolution">
+    <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+    Body Trends
+  </a>
+</div>
+
+<!-- ========== TAB: ANAMNESE ========== -->
+{% if active_tab == 'anamnesis' %}
+<div class="space-y-4">
+  {% if anamnesis %}
+    <!-- Dados Pessoais -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-bold text-lg flex items-center gap-2">
+          <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          Personal Details
+        </h2>
+        <span class="text-xs opacity-40">Atualizado em {{ anamnesis.updated_at|date:"d/m/Y H:i" }}</span>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3 text-sm">
+        {% if anamnesis.date_of_birth %}
+        <div>
+          <span class="opacity-50">Data de nascimento:</span>
+          <span class="font-medium ml-1">{{ anamnesis.date_of_birth|date:"d/m/Y" }}</span>
+        </div>
+        {% endif %}
+        {% if anamnesis.gender %}
+        <div>
+          <span class="opacity-50">Sexo:</span>
+          <span class="font-medium ml-1">{{ anamnesis.get_gender_display }}</span>
+        </div>
+        {% endif %}
+        {% if anamnesis.phone %}
+        <div>
+          <span class="opacity-50">Telefone:</span>
+          <span class="font-medium ml-1">{{ anamnesis.phone }}</span>
+        </div>
+        {% endif %}
+        {% if anamnesis.occupation %}
+        <div>
+          <span class="opacity-50">Occupation:</span>
+          <span class="font-medium ml-1">{{ anamnesis.occupation }}</span>
+        </div>
+        {% endif %}
+        {% if anamnesis.emergency_contact_name %}
+        <div>
+          <span class="opacity-50">Emergency contact:</span>
+          <span class="font-medium ml-1">{{ anamnesis.emergency_contact_name }}{% if anamnesis.emergency_contact_phone %} · {{ anamnesis.emergency_contact_phone }}{% endif %}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Treino e Objetivos -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <h2 class="font-bold text-lg flex items-center gap-2 mb-4">
+        <svg class="w-5 h-5 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        Training and Goals
+      </h2>
+      <div class="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+        {% if anamnesis.training_experience %}
+        <div>
+          <span class="opacity-50">Experience:</span>
+          <span class="font-medium ml-1">{{ anamnesis.get_training_experience_display }}</span>
+        </div>
+        {% endif %}
+        {% if anamnesis.training_frequency %}
+        <div>
+          <span class="opacity-50">Frequency:</span>
+          <span class="font-medium ml-1">{{ anamnesis.training_frequency }}x por semana</span>
+        </div>
+        {% endif %}
+        {% if anamnesis.primary_goal %}
+        <div>
+          <span class="opacity-50">Primary goal:</span>
+          <span class="badge badge-primary badge-sm ml-1">{{ anamnesis.get_primary_goal_display }}</span>
+        </div>
+        {% endif %}
+        {% if anamnesis.secondary_goal %}
+        <div>
+          <span class="opacity-50">Secondary goal:</span>
+          <span class="font-medium ml-1">{{ anamnesis.secondary_goal }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Saúde e Histórico Médico -->
+    {% if anamnesis.medical_conditions or anamnesis.medications or anamnesis.injuries_history or anamnesis.surgeries or anamnesis.allergies or anamnesis.pain_complaints or anamnesis.physical_limitations %}
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <h2 class="font-bold text-lg flex items-center gap-2 mb-4">
+        <svg class="w-5 h-5 text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+        Health and Medical History
+      </h2>
+      <div class="space-y-3 text-sm">
+        {% if anamnesis.medical_conditions %}
+        <div class="p-3 bg-error/5 rounded-xl border border-error/10">
+          <p class="font-semibold text-error text-xs uppercase tracking-wider mb-1">Medical Conditions</p>
+          <p class="whitespace-pre-line">{{ anamnesis.medical_conditions }}</p>
+        </div>
+        {% endif %}
+        {% if anamnesis.medications %}
+        <div class="p-3 bg-warning/5 rounded-xl border border-warning/10">
+          <p class="font-semibold text-warning text-xs uppercase tracking-wider mb-1">Medicamentos</p>
+          <p class="whitespace-pre-line">{{ anamnesis.medications }}</p>
+        </div>
+        {% endif %}
+        {% if anamnesis.injuries_history %}
+        <div class="p-3 bg-base-200 rounded-xl">
+          <p class="font-semibold text-xs uppercase tracking-wider mb-1 opacity-60">Injury History</p>
+          <p class="whitespace-pre-line">{{ anamnesis.injuries_history }}</p>
+        </div>
+        {% endif %}
+        {% if anamnesis.surgeries %}
+        <div class="p-3 bg-base-200 rounded-xl">
+          <p class="font-semibold text-xs uppercase tracking-wider mb-1 opacity-60">Cirurgias</p>
+          <p class="whitespace-pre-line">{{ anamnesis.surgeries }}</p>
+        </div>
+        {% endif %}
+        {% if anamnesis.allergies %}
+        <div class="p-3 bg-warning/5 rounded-xl border border-warning/10">
+          <p class="font-semibold text-warning text-xs uppercase tracking-wider mb-1">Alergias</p>
+          <p class="whitespace-pre-line">{{ anamnesis.allergies }}</p>
+        </div>
+        {% endif %}
+        {% if anamnesis.pain_complaints %}
+        <div class="p-3 bg-base-200 rounded-xl">
+          <p class="font-semibold text-xs uppercase tracking-wider mb-1 opacity-60">Queixas de Dor</p>
+          <p class="whitespace-pre-line">{{ anamnesis.pain_complaints }}</p>
+        </div>
+        {% endif %}
+        {% if anamnesis.physical_limitations %}
+        <div class="p-3 bg-error/5 rounded-xl border border-error/10">
+          <p class="font-semibold text-error text-xs uppercase tracking-wider mb-1">Physical Limitations</p>
+          <p class="whitespace-pre-line">{{ anamnesis.physical_limitations }}</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Estilo de Vida -->
+    {% if anamnesis.sleep_hours or anamnesis.stress_level or anamnesis.smoker or anamnesis.alcohol_consumption != 'none' or anamnesis.dietary_restrictions or anamnesis.supplements %}
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <h2 class="font-bold text-lg flex items-center gap-2 mb-4">
+        <svg class="w-5 h-5 text-info" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        Lifestyle
+      </h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-3">
+        {% if anamnesis.sleep_hours %}
+        <div class="flex items-center gap-2 p-3 bg-base-200 rounded-xl">
+          <svg class="w-5 h-5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+          <div>
+            <p class="text-xs opacity-50">Sleep</p>
+            <p class="font-bold">{{ anamnesis.sleep_hours }}h/night</p>
+          </div>
+        </div>
+        {% endif %}
+        {% if anamnesis.stress_level %}
+        <div class="flex items-center gap-2 p-3 bg-base-200 rounded-xl">
+          <svg class="w-5 h-5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <div>
+            <p class="text-xs opacity-50">Stress</p>
+            <p class="font-bold">{{ anamnesis.get_stress_level_display }}</p>
+          </div>
+        </div>
+        {% endif %}
+        <div class="flex items-center gap-2 p-3 bg-base-200 rounded-xl">
+          <svg class="w-5 h-5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+          <div>
+            <p class="text-xs opacity-50">Smoker</p>
+            <p class="font-bold">{% if anamnesis.smoker %}Yes{% else %}No{% endif %}</p>
+          </div>
+        </div>
+        {% if anamnesis.alcohol_consumption %}
+        <div class="flex items-center gap-2 p-3 bg-base-200 rounded-xl">
+          <svg class="w-5 h-5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+          <div>
+            <p class="text-xs opacity-50">Alcohol</p>
+            <p class="font-bold">{{ anamnesis.get_alcohol_consumption_display }}</p>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% if anamnesis.dietary_restrictions %}
+      <div class="text-sm p-3 bg-base-200 rounded-xl mb-2">
+        <p class="font-semibold text-xs uppercase tracking-wider mb-1 opacity-60">Dietary Restrictions</p>
+        <p class="whitespace-pre-line">{{ anamnesis.dietary_restrictions }}</p>
+      </div>
+      {% endif %}
+      {% if anamnesis.supplements %}
+      <div class="text-sm p-3 bg-base-200 rounded-xl">
+        <p class="font-semibold text-xs uppercase tracking-wider mb-1 opacity-60">Suplementos</p>
+        <p class="whitespace-pre-line">{{ anamnesis.supplements }}</p>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Texto Livre / Notas Adicionais -->
+    {% if anamnesis.additional_notes %}
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <h2 class="font-bold text-lg flex items-center gap-2 mb-4">
+        <svg class="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        General Notes
+      </h2>
+      <div class="prose prose-sm max-w-none opacity-90">
+        <p class="whitespace-pre-line">{{ anamnesis.additional_notes }}</p>
+      </div>
+    </div>
+    {% endif %}
+
+  {% else %}
+    <!-- Empty state -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-8 text-center">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+        <svg class="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      </div>
+      <h3 class="font-bold text-lg mb-2">No health profile yet</h3>
+      <p class="opacity-50 text-sm mb-4">Add the health profile to capture a complete view of the student's history and constraints.</p>
+      <a href="{% url 'student-anamnesis' student.pk %}" class="btn btn-primary btn-sm gap-1">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        Add Health Profile
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- ========== TAB: AVALIAÇÕES ========== -->
+{% if active_tab == 'assessments' %}
+<div class="space-y-4">
+  {% if latest_assessment %}
+    <!-- Última Avaliação -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-bold text-lg flex items-center gap-2">
+          <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          Latest Assessment — {{ latest_assessment.assessed_at|date:"d/m/Y" }}
+        </h2>
+        <a href="{% url 'student-assessment-edit' student.pk latest_assessment.pk %}" class="btn btn-ghost btn-xs gap-1">
+          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          Edit
+        </a>
+      </div>
+
+      <!-- Dados Principais -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
+        {% if latest_assessment.weight_kg %}
+        <div class="p-3 bg-base-200 rounded-xl text-center">
+          <p class="text-xs opacity-50">Peso</p>
+          <p class="text-2xl font-bold text-primary">{{ latest_assessment.weight_kg }}<span class="text-sm font-normal">kg</span></p>
+        </div>
+        {% endif %}
+        {% if latest_assessment.height_cm %}
+        <div class="p-3 bg-base-200 rounded-xl text-center">
+          <p class="text-xs opacity-50">Altura</p>
+          <p class="text-2xl font-bold">{{ latest_assessment.height_cm }}<span class="text-sm font-normal">cm</span></p>
+        </div>
+        {% endif %}
+        {% if latest_assessment.bmi %}
+        <div class="p-3 bg-base-200 rounded-xl text-center">
+          <p class="text-xs opacity-50">IMC</p>
+          <p class="text-2xl font-bold {% if latest_assessment.bmi >= 25 or latest_assessment.bmi < 18.5 %}text-warning{% else %}text-success{% endif %}">{{ latest_assessment.bmi }}</p>
+          <p class="text-xs opacity-50">{{ latest_assessment.bmi_classification }}</p>
+        </div>
+        {% endif %}
+        {% if latest_assessment.body_fat_percentage %}
+        <div class="p-3 bg-base-200 rounded-xl text-center">
+          <p class="text-xs opacity-50">Body Fat</p>
+          <p class="text-2xl font-bold text-secondary">{{ latest_assessment.body_fat_percentage }}<span class="text-sm font-normal">%</span></p>
+        </div>
+        {% endif %}
+        {% if latest_assessment.lean_mass_kg %}
+        <div class="p-3 bg-base-200 rounded-xl text-center">
+          <p class="text-xs opacity-50">Lean Mass</p>
+          <p class="text-2xl font-bold text-success">{{ latest_assessment.lean_mass_kg }}<span class="text-sm font-normal">kg</span></p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Composição Corporal Visual -->
+      {% if latest_assessment.body_fat_percentage and latest_assessment.weight_kg %}
+      <div class="mb-5">
+        <h3 class="font-semibold text-sm mb-2 opacity-60">Body Composition</h3>
+        <div class="flex gap-1 h-6 rounded-full overflow-hidden">
+          <div class="bg-success flex items-center justify-center text-xs font-bold text-success-content" style="width: {{ latest_assessment.lean_mass_percentage }}%">
+            Lean {{ latest_assessment.lean_mass_kg }}kg
+          </div>
+          <div class="bg-warning flex items-center justify-center text-xs font-bold text-warning-content" style="width: {{ latest_assessment.body_fat_percentage }}%">
+            Fat {{ latest_assessment.fat_mass_kg }}kg
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Circunferências -->
+      {% if latest_assessment.neck_cm or latest_assessment.shoulders_cm or latest_assessment.chest_cm or latest_assessment.waist_cm or latest_assessment.abdomen_cm or latest_assessment.hips_cm or latest_assessment.right_arm_cm or latest_assessment.left_arm_cm or latest_assessment.right_thigh_cm or latest_assessment.left_thigh_cm or latest_assessment.right_calf_cm or latest_assessment.left_calf_cm %}
+      <h3 class="font-semibold text-sm mb-3 opacity-60">Circumferences (cm)</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-5">
+        {% if latest_assessment.neck_cm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Neck</span><span class="font-bold">{{ latest_assessment.neck_cm }}</span>
+        </div>
+        {% endif %}
+        {% if latest_assessment.shoulders_cm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Ombros</span><span class="font-bold">{{ latest_assessment.shoulders_cm }}</span>
+        </div>
+        {% endif %}
+        {% if latest_assessment.chest_cm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Chest</span><span class="font-bold">{{ latest_assessment.chest_cm }}</span>
+        </div>
+        {% endif %}
+        {% if latest_assessment.waist_cm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Waist</span><span class="font-bold">{{ latest_assessment.waist_cm }}</span>
+        </div>
+        {% endif %}
+        {% if latest_assessment.abdomen_cm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Abdomen</span><span class="font-bold">{{ latest_assessment.abdomen_cm }}</span>
+        </div>
+        {% endif %}
+        {% if latest_assessment.hips_cm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Quadril</span><span class="font-bold">{{ latest_assessment.hips_cm }}</span>
+        </div>
+        {% endif %}
+        {% if latest_assessment.right_arm_cm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Right arm</span><span class="font-bold">{{ latest_assessment.right_arm_cm }}</span>
+        </div>
+        {% endif %}
+        {% if latest_assessment.left_arm_cm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Left arm</span><span class="font-bold">{{ latest_assessment.left_arm_cm }}</span>
+        </div>
+        {% endif %}
+        {% if latest_assessment.right_forearm_cm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Right forearm</span><span class="font-bold">{{ latest_assessment.right_forearm_cm }}</span>
+        </div>
+        {% endif %}
+        {% if latest_assessment.left_forearm_cm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Left forearm</span><span class="font-bold">{{ latest_assessment.left_forearm_cm }}</span>
+        </div>
+        {% endif %}
+        {% if latest_assessment.right_thigh_cm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Coxa D</span><span class="font-bold">{{ latest_assessment.right_thigh_cm }}</span>
+        </div>
+        {% endif %}
+        {% if latest_assessment.left_thigh_cm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Coxa E</span><span class="font-bold">{{ latest_assessment.left_thigh_cm }}</span>
+        </div>
+        {% endif %}
+        {% if latest_assessment.right_calf_cm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Right calf</span><span class="font-bold">{{ latest_assessment.right_calf_cm }}</span>
+        </div>
+        {% endif %}
+        {% if latest_assessment.left_calf_cm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Left calf</span><span class="font-bold">{{ latest_assessment.left_calf_cm }}</span>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Dobras Cutâneas -->
+      {% if latest_assessment.triceps_skinfold_mm or latest_assessment.subscapular_skinfold_mm or latest_assessment.suprailiac_skinfold_mm or latest_assessment.abdominal_skinfold_mm or latest_assessment.thigh_skinfold_mm or latest_assessment.chest_skinfold_mm or latest_assessment.midaxillary_skinfold_mm %}
+      <h3 class="font-semibold text-sm mb-3 opacity-60">Skinfolds (mm)</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-5">
+        {% if latest_assessment.triceps_skinfold_mm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Triceps</span><span class="font-bold">{{ latest_assessment.triceps_skinfold_mm }}</span>
+        </div>
+        {% endif %}
+        {% if latest_assessment.subscapular_skinfold_mm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Subescapular</span><span class="font-bold">{{ latest_assessment.subscapular_skinfold_mm }}</span>
+        </div>
+        {% endif %}
+        {% if latest_assessment.suprailiac_skinfold_mm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Suprailiac</span><span class="font-bold">{{ latest_assessment.suprailiac_skinfold_mm }}</span>
+        </div>
+        {% endif %}
+        {% if latest_assessment.abdominal_skinfold_mm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Abdominal</span><span class="font-bold">{{ latest_assessment.abdominal_skinfold_mm }}</span>
+        </div>
+        {% endif %}
+        {% if latest_assessment.thigh_skinfold_mm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Coxa</span><span class="font-bold">{{ latest_assessment.thigh_skinfold_mm }}</span>
+        </div>
+        {% endif %}
+        {% if latest_assessment.chest_skinfold_mm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Chest</span><span class="font-bold">{{ latest_assessment.chest_skinfold_mm }}</span>
+        </div>
+        {% endif %}
+        {% if latest_assessment.midaxillary_skinfold_mm %}
+        <div class="flex justify-between p-2 bg-base-200 rounded-lg text-sm">
+          <span class="opacity-60">Midaxillary</span><span class="font-bold">{{ latest_assessment.midaxillary_skinfold_mm }}</span>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% if latest_assessment.notes %}
+      <div class="p-3 bg-base-200 rounded-xl text-sm">
+        <p class="font-semibold text-xs uppercase tracking-wider mb-1 opacity-60">Notes</p>
+        <p class="whitespace-pre-line">{{ latest_assessment.notes }}</p>
+      </div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <!-- Histórico de Avaliações -->
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-bold text-lg">Assessment History</h2>
+      <a href="{% url 'student-assessment-create' student.pk %}" class="btn btn-primary btn-sm gap-1">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        New Assessment
+      </a>
+    </div>
+
+    {% if assessments %}
+    <div class="overflow-x-auto">
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Peso</th>
+            <th>% Body Fat</th>
+            <th>IMC</th>
+            <th>Lean Mass</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in assessments %}
+          <tr class="hover:bg-base-200 transition">
+            <td class="font-medium">{{ a.assessed_at|date:"d/m/Y" }}</td>
+            <td>{% if a.weight_kg %}{{ a.weight_kg }} kg{% else %}—{% endif %}</td>
+            <td>{% if a.body_fat_percentage %}{{ a.body_fat_percentage }}%{% else %}—{% endif %}</td>
+            <td>{% if a.bmi %}{{ a.bmi }}{% else %}—{% endif %}</td>
+            <td>{% if a.lean_mass_kg %}{{ a.lean_mass_kg }} kg{% else %}—{% endif %}</td>
+            <td class="text-right">
+              <div class="flex items-center gap-1 justify-end">
+                <a href="{% url 'student-assessment-edit' student.pk a.pk %}" class="btn btn-ghost btn-xs" title="Edit">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                </a>
+                <form method="post" action="{% url 'student-assessment-delete' student.pk a.pk %}" onsubmit="return confirm('Delete this assessment?')" class="inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-ghost btn-xs text-error" title="Delete">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-8 opacity-50">
+      <svg class="w-12 h-12 mx-auto mb-2 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+      <p class="mb-2">No assessments recorded yet.</p>
+      <a href="{% url 'student-assessment-create' student.pk %}" class="btn btn-primary btn-sm">Record first assessment</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<!-- ========== TAB: EVOLUÇÃO ========== -->
+{% if active_tab == 'evolution' %}
+<div class="space-y-4">
+  {% if assessments.count > 0 %}
+  <!-- Chart Controls -->
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+    <h2 class="font-bold text-lg mb-4 flex items-center gap-2">
+      <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+      Body Trends
+    </h2>
+
+    <div class="flex flex-wrap gap-2 mb-4">
+      <button onclick="showChart('weight')" class="btn btn-sm evolution-btn active" data-chart="weight">Peso</button>
+      <button onclick="showChart('body_fat')" class="btn btn-sm btn-ghost evolution-btn" data-chart="body_fat">% Body Fat</button>
+      <button onclick="showChart('bmi')" class="btn btn-sm btn-ghost evolution-btn" data-chart="bmi">IMC</button>
+      <button onclick="showChart('lean_mass')" class="btn btn-sm btn-ghost evolution-btn" data-chart="lean_mass">Lean Mass</button>
+      <button onclick="showChart('circumferences')" class="btn btn-sm btn-ghost evolution-btn" data-chart="circumferences">Circumferences</button>
+    </div>
+
+    <div class="w-full" style="min-height: 320px;">
+      <canvas id="evolution-chart"></canvas>
+    </div>
+  </div>
+
+  <!-- Comparison: First vs Latest -->
+  {% if assessments.count >= 2 %}
+  {% with first=assessments.last latest=assessments.first %}
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+    <h2 class="font-bold text-lg mb-4 flex items-center gap-2">
+      <svg class="w-5 h-5 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Comparison: {{ first.assessed_at|date:"d/m/Y" }} → {{ latest.assessed_at|date:"d/m/Y" }}
+    </h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      {% if first.weight_kg and latest.weight_kg %}
+      <div class="p-3 bg-base-200 rounded-xl text-center">
+        <p class="text-xs opacity-50 mb-1">Peso</p>
+        <p class="font-bold">{{ first.weight_kg }} → {{ latest.weight_kg }} kg</p>
+      </div>
+      {% endif %}
+      {% if first.body_fat_percentage and latest.body_fat_percentage %}
+      <div class="p-3 bg-base-200 rounded-xl text-center">
+        <p class="text-xs opacity-50 mb-1">Body Fat</p>
+        <p class="font-bold">{{ first.body_fat_percentage }}% → {{ latest.body_fat_percentage }}%</p>
+      </div>
+      {% endif %}
+      {% if first.bmi and latest.bmi %}
+      <div class="p-3 bg-base-200 rounded-xl text-center">
+        <p class="text-xs opacity-50 mb-1">IMC</p>
+        <p class="font-bold">{{ first.bmi }} → {{ latest.bmi }}</p>
+      </div>
+      {% endif %}
+      {% if first.lean_mass_kg and latest.lean_mass_kg %}
+      <div class="p-3 bg-base-200 rounded-xl text-center">
+        <p class="text-xs opacity-50 mb-1">Lean Mass</p>
+        <p class="font-bold">{{ first.lean_mass_kg }} → {{ latest.lean_mass_kg }} kg</p>
+      </div>
+      {% endif %}
+      {% if first.waist_cm and latest.waist_cm %}
+      <div class="p-3 bg-base-200 rounded-xl text-center">
+        <p class="text-xs opacity-50 mb-1">Waist</p>
+        <p class="font-bold">{{ first.waist_cm }} → {{ latest.waist_cm }} cm</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endwith %}
+  {% endif %}
+
+  {% else %}
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-8 text-center">
+    <svg class="w-16 h-16 mx-auto mb-4 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+      <h3 class="font-bold text-lg mb-2">No trend data yet</h3>
+    <p class="opacity-50 text-sm mb-4">Record at least one assessment to visualize body trends.</p>
+    <a href="{% url 'student-assessment-create' student.pk %}" class="btn btn-primary btn-sm gap-1">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Record Assessment
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if active_tab == 'evolution' and assessments.count > 0 %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const evolutionData = {{ evolution_data|safe }};
+const ctx = document.getElementById('evolution-chart').getContext('2d');
+
+const chartColors = {
+  weight: { border: 'oklch(0.65 0.24 265)', bg: 'oklch(0.65 0.24 265 / 0.12)' },
+  body_fat: { border: 'oklch(0.7 0.2 50)', bg: 'oklch(0.7 0.2 50 / 0.12)' },
+  bmi: { border: 'oklch(0.7 0.18 150)', bg: 'oklch(0.7 0.18 150 / 0.12)' },
+  lean_mass: { border: 'oklch(0.7 0.2 145)', bg: 'oklch(0.7 0.2 145 / 0.12)' },
+  fat_mass: { border: 'oklch(0.7 0.2 30)', bg: 'oklch(0.7 0.2 30 / 0.12)' },
+  waist: { border: 'oklch(0.65 0.15 280)', bg: 'oklch(0.65 0.15 280 / 0.12)' },
+  right_arm: { border: 'oklch(0.7 0.2 200)', bg: 'oklch(0.7 0.2 200 / 0.12)' },
+  left_arm: { border: 'oklch(0.6 0.2 200)', bg: 'oklch(0.6 0.2 200 / 0.12)' },
+  right_thigh: { border: 'oklch(0.7 0.2 100)', bg: 'oklch(0.7 0.2 100 / 0.12)' },
+  chest: { border: 'oklch(0.65 0.2 340)', bg: 'oklch(0.65 0.2 340 / 0.12)' },
+};
+
+const labels = evolutionData.map(p => p.date);
+
+let chart = new Chart(ctx, {
+  type: 'line',
+  data: { labels, datasets: [] },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true, position: 'top', labels: { color: 'rgba(255,255,255,0.6)', usePointStyle: true } },
+      tooltip: { backgroundColor: '#1d232a', titleColor: '#fff', bodyColor: '#aaa', padding: 10, cornerRadius: 8 }
+    },
+    scales: {
+      y: { beginAtZero: false, grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: 'rgba(255,255,255,0.5)' } },
+      x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)' } }
+    }
+  }
+});
+
+function makeDataset(key, label, color) {
+  return {
+    label,
+    data: evolutionData.map(p => p[key] || null),
+    borderColor: color.border,
+    backgroundColor: color.bg,
+    fill: true,
+    tension: 0.35,
+    pointRadius: 5,
+    pointHoverRadius: 7,
+    pointBackgroundColor: color.border,
+    pointBorderColor: '#1d232a',
+    pointBorderWidth: 2,
+    spanGaps: true,
+  };
+}
+
+function showChart(type) {
+  document.querySelectorAll('.evolution-btn').forEach(b => {
+    b.classList.remove('btn-primary', 'active');
+    b.classList.add('btn-ghost');
+  });
+  const btn = document.querySelector(`.evolution-btn[data-chart="${type}"]`);
+  if (btn) { btn.classList.add('btn-primary', 'active'); btn.classList.remove('btn-ghost'); }
+
+  let datasets = [];
+  switch(type) {
+    case 'weight':
+      datasets = [makeDataset('weight', 'Peso (kg)', chartColors.weight)];
+      break;
+    case 'body_fat':
+      datasets = [makeDataset('body_fat', 'Body Fat (%)', chartColors.body_fat)];
+      break;
+    case 'bmi':
+      datasets = [makeDataset('bmi', 'IMC', chartColors.bmi)];
+      break;
+    case 'lean_mass':
+      datasets = [
+        makeDataset('lean_mass', 'Lean Mass (kg)', chartColors.lean_mass),
+        makeDataset('fat_mass', 'Fat Mass (kg)', chartColors.fat_mass),
+      ];
+      break;
+    case 'circumferences':
+      datasets = [
+        makeDataset('waist', 'Waist', chartColors.waist),
+        makeDataset('chest', 'Chest', chartColors.chest),
+        makeDataset('right_arm', 'Right arm', chartColors.right_arm),
+        makeDataset('left_arm', 'Left arm', chartColors.left_arm),
+        makeDataset('right_thigh', 'Coxa D', chartColors.right_thigh),
+      ];
+      break;
+  }
+  chart.data.datasets = datasets;
+  chart.update();
+}
+
+// Show weight chart by default
+showChart('weight');
+</script>
+{% endif %}
+{% endblock %}

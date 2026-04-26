@@ -1,0 +1,391 @@
+{% extends 'base.html' %}
+{% load schedule_tags %}
+{% block title %}Schedule — REVA{% endblock %}
+{% block screen_id %}schedule{% endblock %}
+{% block assistant_screen_name %}Class Schedule{% endblock %}
+{% block nav_schedule %}active{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ── Shared event card ─────────────────────────────── */
+.tl-event {
+  position: absolute; left: 2px; right: 2px;
+  border-radius: .45rem; padding: .3rem .45rem;
+  overflow: hidden; cursor: pointer; text-decoration: none;
+  color: inherit; z-index: 2;
+  border-left: 3px solid;
+  transition: opacity .12s, transform .12s;
+  box-shadow: 0 1px 4px oklch(0 0 0 / .25);
+}
+.tl-event:hover  { opacity: .88; transform: scale(.99); }
+.tl-event:active { opacity: .75; transform: scale(.97); }
+.tl-event.status-scheduled { background: oklch(.28 .1 240); border-color: oklch(.62 .22 240); }
+.tl-event.status-completed { background: oklch(.23 .08 145); border-color: oklch(.57 .2 145); }
+.tl-event.status-cancelled { background: oklch(.22 .01 260); border-color: oklch(.44 .01 260); }
+.tl-event.status-no_show   { background: oklch(.26 .1 25);  border-color: oklch(.57 .22 25); }
+
+/* ── Timeline column ───────────────────────────────── */
+.tl-col {
+  position: relative;
+  flex-shrink: 0;
+}
+/* Hour divider lines */
+.tl-hline {
+  position: absolute; left: 0; right: 0;
+  border-top: 1px solid oklch(.27 .01 260 / .6);
+  z-index: 0; pointer-events: none;
+}
+.tl-hline-half {
+  position: absolute; left: 0; right: 0;
+  border-top: 1px dashed oklch(.22 .01 260 / .4);
+  z-index: 0; pointer-events: none;
+}
+/* Current time bar */
+.tl-now {
+  position: absolute; left: 0; right: 0;
+  border-top: 2px solid oklch(.65 .22 25);
+  z-index: 5; pointer-events: none;
+}
+.tl-now::before {
+  content: '';
+  position: absolute; left: -3px; top: -4px;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: oklch(.65 .22 25);
+}
+/* Hour label column */
+.tl-labels {
+  position: relative; flex-shrink: 0;
+  width: 2.75rem;
+  border-right: 1px solid oklch(.27 .01 260 / .5);
+}
+.tl-label {
+  position: absolute; right: .35rem;
+  font-size: .62rem; font-weight: 600; opacity: .4;
+  transform: translateY(-50%);
+}
+/* Add-slot hover zone */
+.tl-slot {
+  position: absolute; left: 0; right: 0;
+  z-index: 1; display: flex; align-items: center; justify-content: center;
+}
+.tl-slot-link {
+  display: none; font-size: .68rem; opacity: .55;
+  color: oklch(.6 .18 260); text-decoration: none;
+  background: oklch(.22 .02 260); border-radius: .3rem;
+  padding: .05rem .4rem;
+}
+.tl-slot:hover .tl-slot-link { display: block; }
+
+/* ── Mobile day strip ──────────────────────────────── */
+.day-strip {
+  display: flex; gap: .35rem; overflow-x: auto; scroll-snap-type: x mandatory;
+  padding-bottom: .25rem; scrollbar-width: none;
+}
+.day-strip::-webkit-scrollbar { display: none; }
+.day-pill {
+  flex: 0 0 auto; scroll-snap-align: center;
+  display: flex; flex-direction: column; align-items: center;
+  padding: .4rem .6rem; border-radius: .8rem; cursor: pointer;
+  border: 1px solid oklch(.3 .01 260); min-width: 2.6rem;
+  transition: background .15s, border-color .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.day-pill.active {
+  background: oklch(.55 .2 260); border-color: oklch(.55 .2 260); color: #fff;
+}
+.day-pill .dp-name { font-size: .58rem; font-weight: 600; opacity: .55; margin-bottom: .1rem; }
+.day-pill .dp-num  { font-size: .95rem; font-weight: 700; line-height: 1; }
+.day-pill .dp-dot  { width: .32rem; height: .32rem; border-radius: 50%;
+  background: oklch(.62 .2 260); margin-top: .2rem; }
+.day-pill.active .dp-dot { background: white; }
+
+/* Day panels */
+.day-panel { display: none; }
+.day-panel.active { display: block; }
+
+/* ── Desktop header ────────────────────────────────── */
+.desk-hdr {
+  display: flex; position: sticky; top: 0; z-index: 20;
+  background: oklch(.17 .01 260); border-bottom: 1px solid oklch(.27 .01 260);
+}
+.desk-hdr-day {
+  flex: 1; text-align: center; padding: .45rem .25rem;
+  font-size: .75rem; font-weight: 700;
+  border-left: 1px solid oklch(.27 .01 260);
+}
+.desk-hdr-day.today-col { color: oklch(.78 .2 260); background: oklch(.2 .04 260); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ══ HEADER ══════════════════════════════════════════════ -->
+<div class="flex items-center justify-between mb-3 gap-3">
+  <div>
+    <h1 class="text-xl sm:text-2xl lg:text-3xl font-extrabold leading-tight">Schedule</h1>
+  </div>
+  <a href="{% url 'class-create' %}" class="btn btn-primary btn-sm gap-1.5">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+    </svg>
+    New Class
+  </a>
+</div>
+
+<!-- Week nav -->
+<div class="flex items-center gap-1.5 mb-4">
+  <a href="?semana={{ prev_week }}" class="btn btn-ghost btn-sm btn-circle">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+  </a>
+  <div class="flex-1 text-center font-bold text-sm sm:text-base">
+    {{ week_days.0|date:"d/m" }} — {{ week_days.6|date:"d/m/Y" }}
+  </div>
+  <a href="?semana={{ next_week }}" class="btn btn-ghost btn-sm btn-circle">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+  </a>
+  <a href="{% url 'schedule' %}" class="btn btn-ghost btn-sm text-xs">Today</a>
+</div>
+
+
+<!-- ══ MOBILE  (< lg) ═══════════════════════════════════════ -->
+<div class="lg:hidden">
+
+  <!-- Day selector strip -->
+  <div class="day-strip mb-3">
+    {% for day_info in week_days_data %}
+    <button class="day-pill{% if day_info.is_today %} is-today{% endif %}"
+            data-day="{{ day_info.date|date:'Y-m-d' }}"
+            onclick="selectDay('{{ day_info.date|date:"Y-m-d" }}')">
+      <span class="dp-name">{{ day_info.name|slice:":3" }}</span>
+      <span class="dp-num">{{ day_info.date|date:"d" }}</span>
+      {% if day_info.has_events %}<span class="dp-dot"></span>{% endif %}
+    </button>
+    {% endfor %}
+  </div>
+
+  <!-- One panel per day -->
+  {% for day_info in week_days_data %}
+  <div class="day-panel" id="panel-{{ day_info.date|date:'Y-m-d' }}" data-day="{{ day_info.date|date:'Y-m-d' }}">
+
+    <!-- Day label + quick-add -->
+    <div class="flex items-center justify-between mb-2 px-1">
+      <p class="font-bold text-sm">
+        {{ day_info.name }}, {{ day_info.date|date:"d/m" }}
+        {% if day_info.is_today %}<span class="badge badge-primary badge-sm ml-1">Today</span>{% endif %}
+      </p>
+      <a href="{% url 'class-create' %}?data={{ day_info.date|date:'Y-m-d' }}" class="btn btn-ghost btn-xs gap-1">
+        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        Schedule
+      </a>
+    </div>
+
+    <!-- Absolute timeline -->
+    <div class="bg-base-100 rounded-xl border border-base-300 overflow-hidden">
+      <div style="display:flex; overflow-y:auto; max-height:70vh;">
+
+        <!-- Hour labels -->
+        <div class="tl-labels" style="height:{{ timeline_height }}px;">
+          {% for h in hours_data %}
+          <span class="tl-label" style="top:{{ h.top_px }}px;">{{ h.hour }}h</span>
+          {% endfor %}
+        </div>
+
+        <!-- Day column -->
+        <div class="tl-col" style="flex:1; height:{{ timeline_height }}px; border-left:1px solid oklch(.27 .01 260/.5);"
+             data-day="{{ day_info.date|date:'Y-m-d' }}">
+
+          <!-- Hour dividers + add-slot zones -->
+          {% for h in hours_data %}
+          <div class="tl-hline" style="top:{{ h.top_px }}px;"></div>
+          <div class="tl-hline-half" style="top:{{ h.top_px|add:32 }}px;"></div>
+          <div class="tl-slot" style="top:{{ h.top_px }}px; height:{{ tl_row_px }}px;">
+            <a href="{% url 'class-create' %}?data={{ day_info.date|date:'Y-m-d' }}&hora={{ h.hour|stringformat:'02d' }}"
+               class="tl-slot-link">+ add</a>
+          </div>
+          {% endfor %}
+
+          <!-- Events -->
+          {% for ev in events_by_day|get_item:day_info.date %}
+          <a href="{% url 'class-update' ev.cls.pk %}"
+             class="tl-event status-{{ ev.cls.status }}"
+             style="top:{{ ev.top }}px; height:{{ ev.height }}px;">
+            <span class="font-semibold text-sm block truncate leading-tight">{{ ev.cls.athlete.user.get_full_name }}</span>
+            <span class="text-xs opacity-60 block leading-tight">{{ ev.cls.scheduled_at|date:"H:i" }} · {{ ev.cls.duration_minutes }}min</span>
+            {% if ev.height > 50 and ev.cls.workout_plan %}
+            <span class="text-xs opacity-45 block truncate leading-tight">{{ ev.cls.workout_plan.name }}</span>
+            {% endif %}
+          </a>
+          {% endfor %}
+
+          <!-- Current time line (only on today's panel) -->
+          {% if day_info.is_today %}
+          <div class="tl-now" id="now-line-mobile"></div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+  {% endfor %}
+
+</div><!-- /mobile -->
+
+
+<!-- ══ DESKTOP (lg+) ════════════════════════════════════════ -->
+<div class="hidden lg:block">
+  <div class="bg-base-100 rounded-2xl border border-base-300 overflow-hidden">
+
+    <!-- Sticky day headers -->
+    <div class="desk-hdr">
+      <div style="width:2.75rem; flex-shrink:0; border-right:1px solid oklch(.27 .01 260/.5);"></div>
+      {% for day_info in week_days_data %}
+      <div class="desk-hdr-day{% if day_info.is_today %} today-col{% endif %}">
+        <div class="opacity-50 font-normal text-xs">{{ day_info.name }}</div>
+        <div class="{% if day_info.is_today %}font-extrabold text-sm{% else %}font-semibold text-sm{% endif %}">
+          {{ day_info.date|date:"d" }}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Scrollable timeline body -->
+    <div style="display:flex; overflow-y:auto; max-height:78vh;">
+
+      <!-- Hour labels -->
+      <div class="tl-labels" style="height:{{ timeline_height }}px;">
+        {% for h in hours_data %}
+        <span class="tl-label" style="top:{{ h.top_px }}px;">{{ h.hour }}h</span>
+        {% endfor %}
+      </div>
+
+      <!-- 7 day columns -->
+      {% for day_info in week_days_data %}
+      <div class="tl-col" style="flex:1; min-width:0; height:{{ timeline_height }}px; border-left:1px solid oklch(.27 .01 260/.5);{% if day_info.is_today %} background:oklch(.17 .015 260/.5);{% endif %}"
+           data-day="{{ day_info.date|date:'Y-m-d' }}">
+
+        <!-- Hour dividers + add-slot zones -->
+        {% for h in hours_data %}
+        <div class="tl-hline" style="top:{{ h.top_px }}px;"></div>
+        <div class="tl-hline-half" style="top:{{ h.top_px|add:32 }}px;"></div>
+        <div class="tl-slot" style="top:{{ h.top_px }}px; height:{{ tl_row_px }}px;">
+          <a href="{% url 'class-create' %}?data={{ day_info.date|date:'Y-m-d' }}&hora={{ h.hour|stringformat:'02d' }}"
+             class="tl-slot-link">+ class</a>
+        </div>
+        {% endfor %}
+
+        <!-- Events -->
+        {% for ev in events_by_day|get_item:day_info.date %}
+        <a href="{% url 'class-update' ev.cls.pk %}"
+           class="tl-event status-{{ ev.cls.status }}"
+           style="top:{{ ev.top }}px; height:{{ ev.height }}px;"
+           title="{{ ev.cls.athlete.user.get_full_name }} — {{ ev.cls.scheduled_at|date:'H:i' }} ({{ ev.cls.duration_minutes }}min)">
+          <span class="font-semibold block truncate" style="font-size:.7rem; line-height:1.25;">
+            {{ ev.cls.athlete.user.first_name }} {{ ev.cls.athlete.user.last_name|make_list|first|upper }}.
+          </span>
+          <span class="opacity-60 block" style="font-size:.62rem; line-height:1.2;">
+            {{ ev.cls.scheduled_at|date:"H:i" }} · {{ ev.cls.duration_minutes }}min
+          </span>
+          {% if ev.height > 55 and ev.cls.workout_plan %}
+          <span class="opacity-45 block truncate" style="font-size:.58rem; line-height:1.2;">{{ ev.cls.workout_plan.name }}</span>
+          {% endif %}
+        </a>
+        {% endfor %}
+
+        <!-- Current time line -->
+        {% if day_info.is_today %}
+        <div class="tl-now" id="now-line-desk"></div>
+        {% endif %}
+
+      </div>
+      {% endfor %}
+
+    </div>
+  </div>
+</div><!-- /desktop -->
+
+
+{% if not has_any_events %}
+<div class="mt-4 flex flex-col sm:flex-row items-center gap-4 bg-base-100 border border-base-300 border-dashed rounded-2xl px-5 py-6 text-center sm:text-left">
+  <div class="bg-primary/10 p-3 rounded-xl shrink-0">
+    <svg class="w-7 h-7 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+  </div>
+  <div class="flex-1">
+    <p class="font-semibold">No classes this week</p>
+    <p class="text-sm opacity-50 mt-0.5">Schedule sessions for students and keep attendance under control.</p>
+  </div>
+  <a href="{% url 'class-create' %}" class="btn btn-primary btn-sm gap-1.5 shrink-0">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    Schedule class
+  </a>
+</div>
+{% endif %}
+
+<!-- Legend -->
+<div class="flex flex-wrap gap-3 mt-4 text-xs opacity-55">
+  <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm border-l-2" style="background:oklch(.28 .1 240);border-color:oklch(.62 .22 240)"></span>Scheduled</span>
+  <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm border-l-2" style="background:oklch(.23 .08 145);border-color:oklch(.57 .2 145)"></span>Completed</span>
+  <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm border-l-2" style="background:oklch(.22 .01 260);border-color:oklch(.44 .01 260)"></span>Cancelled</span>
+  <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-sm border-l-2" style="background:oklch(.26 .1 25);border-color:oklch(.57 .22 25)"></span>No-show</span>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const TODAY = "{{ today|date:'Y-m-d' }}";
+const WEEK_DAYS = [{% for d in week_days %}"{{ d|date:'Y-m-d' }}"{% if not forloop.last %},{% endif %}{% endfor %}];
+const TL_FIRST_HOUR = {{ tl_first_hour }};
+const TL_ROW_PX = {{ tl_row_px }};
+
+// ── Mobile: day selector ──────────────────────────────────
+function selectDay(dayStr) {
+  document.querySelectorAll('.day-pill').forEach(p =>
+    p.classList.toggle('active', p.dataset.day === dayStr)
+  );
+  document.querySelectorAll('.day-panel').forEach(p =>
+    p.classList.toggle('active', p.dataset.day === dayStr)
+  );
+  const pill = document.querySelector(`.day-pill[data-day="${dayStr}"]`);
+  if (pill) pill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+
+  // Scroll timeline to current hour (or first event)
+  setTimeout(() => {
+    const panel = document.getElementById(`panel-${dayStr}`);
+    if (!panel) return;
+    const scrollArea = panel.querySelector('[style*="overflow-y"]');
+    if (scrollArea) {
+      const now = new Date();
+      const target = dayStr === TODAY
+        ? Math.max(0, ((now.getHours() - TL_FIRST_HOUR) - 1) * TL_ROW_PX)
+        : 0;
+      scrollArea.scrollTo({ top: target, behavior: 'smooth' });
+    }
+  }, 80);
+}
+
+const defaultDay = WEEK_DAYS.includes(TODAY) ? TODAY : WEEK_DAYS[0];
+selectDay(defaultDay);
+
+// ── Current time line ─────────────────────────────────────
+function updateNowLine() {
+  const now = new Date();
+  const top = ((now.getHours() - TL_FIRST_HOUR) + now.getMinutes() / 60) * TL_ROW_PX;
+  ['now-line-mobile', 'now-line-desk'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.top = Math.round(top) + 'px';
+  });
+}
+updateNowLine();
+setInterval(updateNowLine, 30000);
+
+// ── Desktop: scroll to current hour on load ───────────────
+const deskScroll = document.querySelector('.hidden.lg\\:block [style*="overflow-y"]');
+if (deskScroll) {
+  const now = new Date();
+  const scrollTop = Math.max(0, ((now.getHours() - TL_FIRST_HOUR) - 1) * TL_ROW_PX);
+  setTimeout(() => deskScroll.scrollTo({ top: scrollTop, behavior: 'smooth' }), 100);
+}
+</script>
+{% endblock %}

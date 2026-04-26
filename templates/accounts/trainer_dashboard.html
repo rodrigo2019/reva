@@ -1,191 +1,153 @@
 {% extends 'base.html' %}
-{% block title %}Painel — REVA{% endblock %}
+{% block title %}Hoje - REVA{% endblock %}
 {% block screen_id %}trainer-dashboard{% endblock %}
-{% block assistant_screen_name %}Painel do Treinador{% endblock %}
+{% block assistant_screen_name %}Hoje do treinador{% endblock %}
 {% block nav_dashboard %}active{% endblock %}
 
 {% block content %}
-<div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+<div class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
   <div>
-    <h1 class="text-2xl sm:text-3xl font-extrabold">Painel do Treinador</h1>
-    <p class="opacity-50 mt-1 text-sm sm:text-base">Visão geral dos seus alunos e treinos.</p>
+    <p class="text-sm font-semibold uppercase tracking-wide text-primary">Operacao</p>
+    <h1 class="text-2xl sm:text-3xl font-extrabold">Hoje</h1>
+    <p class="opacity-60 mt-1 text-sm sm:text-base">Aulas, alertas e proximas decisoes da carteira.</p>
   </div>
-  <a href="{% url 'student-create' %}" class="btn btn-primary btn-sm sm:btn-md gap-2">
-    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-    Vincular Aluno
-  </a>
-</div>
-
-<!-- Stat Cards with Icons -->
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-  <div class="bg-base-100 rounded-2xl border border-base-300 p-3 sm:p-5 flex items-center gap-3 sm:gap-4">
-    <div class="bg-primary/10 p-2.5 sm:p-3 rounded-xl">
-      <svg class="w-5 h-5 sm:w-7 sm:h-7 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-    </div>
-    <div>
-      <p class="text-xl sm:text-2xl font-extrabold text-primary">{{ athlete_count }}</p>
-      <p class="text-xs opacity-50">Alunos</p>
-    </div>
-  </div>
-  <div class="bg-base-100 rounded-2xl border border-base-300 p-3 sm:p-5 flex items-center gap-3 sm:gap-4">
-    <div class="bg-secondary/10 p-2.5 sm:p-3 rounded-xl">
-      <svg class="w-5 h-5 sm:w-7 sm:h-7 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-    </div>
-    <div>
-      <p class="text-xl sm:text-2xl font-extrabold text-secondary">{{ workout_count }}</p>
-      <p class="text-xs opacity-50">Treinos</p>
-    </div>
-  </div>
-  <div class="bg-base-100 rounded-2xl border border-base-300 p-3 sm:p-5 flex items-center gap-3 sm:gap-4">
-    <div class="bg-success/10 p-2.5 sm:p-3 rounded-xl">
-      <svg class="w-5 h-5 sm:w-7 sm:h-7 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-    </div>
-    <div>
-      <p class="text-xl sm:text-2xl font-extrabold text-success">{{ active_workout_count }}</p>
-      <p class="text-xs opacity-50">Treinos ativos</p>
-    </div>
-  </div>
-  <div class="bg-base-100 rounded-2xl border border-base-300 p-3 sm:p-5 flex items-center gap-3 sm:gap-4">
-    <div class="bg-accent/10 p-2.5 sm:p-3 rounded-xl">
-      <svg class="w-5 h-5 sm:w-7 sm:h-7 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
-    </div>
-    <div>
-      <p class="text-xl sm:text-2xl font-extrabold text-accent">{{ exercise_count }}</p>
-      <p class="text-xs opacity-50">Exercícios</p>
-    </div>
+  <div class="flex flex-wrap gap-2">
+    <a href="{% url 'class-create' %}" class="btn btn-primary btn-sm sm:btn-md gap-2">Agendar aula</a>
+    <a href="{% url 'plan-create' %}" class="btn btn-outline btn-sm sm:btn-md gap-2">Criar plano</a>
+    <button type="button" class="btn btn-ghost btn-sm sm:btn-md gap-2" data-reva-prompt="Analise minha carteira de alunos com base nesta tela e liste as tres prioridades de hoje.">Perguntar a IA</button>
   </div>
 </div>
 
-<div class="grid lg:grid-cols-3 gap-4 sm:gap-6">
+<div class="grid grid-cols-2 xl:grid-cols-5 gap-3 sm:gap-4 mb-6">
+  <div class="card bg-base-100 border border-base-300 rounded-lg"><div class="card-body p-4 gap-1"><p class="text-xs opacity-60">Alunos ativos</p><p class="text-2xl font-extrabold text-primary">{{ active_student_count }}</p><p class="text-xs opacity-50">de {{ athlete_count }} vinculados</p></div></div>
+  <div class="card bg-base-100 border border-base-300 rounded-lg"><div class="card-body p-4 gap-1"><p class="text-xs opacity-60">Aulas hoje</p><p class="text-2xl font-extrabold text-secondary">{{ today_class_count }}</p><p class="text-xs opacity-50">{{ upcoming_classes|length }} nos proximos dias</p></div></div>
+  <div class="card bg-base-100 border border-base-300 rounded-lg"><div class="card-body p-4 gap-1"><p class="text-xs opacity-60">Alunos em atencao</p><p class="text-2xl font-extrabold text-warning">{{ attention_count }}</p><p class="text-xs opacity-50">sem treino recente</p></div></div>
+  <div class="card bg-base-100 border border-base-300 rounded-lg"><div class="card-body p-4 gap-1"><p class="text-xs opacity-60">Perfis incompletos</p><p class="text-2xl font-extrabold text-accent">{{ incomplete_profile_count }}</p><p class="text-xs opacity-50">faltam dados essenciais</p></div></div>
+  <div class="card bg-base-100 border border-base-300 rounded-lg col-span-2 xl:col-span-1"><div class="card-body p-4 gap-1"><p class="text-xs opacity-60">Planos a revisar</p><p class="text-2xl font-extrabold text-info">{{ plan_review_count }}</p><p class="text-xs opacity-50">ativos ha mais tempo</p></div></div>
+</div>
 
-  <!-- Alunos — clickable with activity indicator -->
-  <div class="lg:col-span-1 space-y-6">
-    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="font-bold text-lg">Alunos</h2>
-        <a href="{% url 'student-list' %}" class="btn btn-ghost btn-xs">Ver todos</a>
-      </div>
-      {% for athlete in athletes %}
-        <a href="{% url 'student-detail' athlete.pk %}" class="flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-xl hover:bg-base-200 transition {% if not forloop.last %}border-b border-base-300{% endif %}">
-          <div class="avatar placeholder">
-            <div class="bg-primary text-primary-content w-10 rounded-full">
-              <span class="text-sm font-bold">{{ athlete.user.first_name|make_list|first|upper }}{{ athlete.user.last_name|make_list|first|upper }}</span>
-            </div>
-          </div>
-          <div class="flex-1 min-w-0 leading-tight">
-            <p class="font-semibold text-sm truncate">{{ athlete.user.get_full_name|default:athlete.user.username }}</p>
-            <p class="text-xs opacity-40">
-              {% if athlete.last_activity %}
-                Última atividade: {{ athlete.last_activity|timesince }} atrás
-              {% else %}
-                Sem atividade registrada
-              {% endif %}
-            </p>
-          </div>
-          {% if athlete.last_activity and athlete.last_activity >= seven_days_ago %}
-            <span class="w-2.5 h-2.5 rounded-full bg-success flex-shrink-0" title="Ativo nos últimos 7 dias"></span>
-          {% else %}
-            <span class="w-2.5 h-2.5 rounded-full bg-base-300 flex-shrink-0" title="Inativo"></span>
-          {% endif %}
-        </a>
-      {% empty %}
-        <div class="text-center py-6 opacity-50">
-          <p class="mb-2">Nenhum aluno cadastrado.</p>
-          <a href="{% url 'student-create' %}" class="btn btn-primary btn-sm">Vincular aluno</a>
-        </div>
-      {% endfor %}
-    </div>
-  </div>
-
-  <!-- Right column: chart + activity -->
-  <div class="lg:col-span-2 space-y-6">
-
-    <!-- Weekly activity chart -->
-    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
-      <h2 class="font-bold text-lg mb-4">Atividade da Semana</h2>
-      <div class="h-48 relative">
-        <!-- Skeleton placeholder -->
-        <div id="chart-skeleton" class="absolute inset-0 flex items-end gap-3 px-4 pb-4">
-          <div class="skeleton-block flex-1 h-1/3"></div>
-          <div class="skeleton-block flex-1 h-2/3"></div>
-          <div class="skeleton-block flex-1 h-1/2"></div>
-          <div class="skeleton-block flex-1 h-3/4"></div>
-          <div class="skeleton-block flex-1 h-2/5"></div>
-          <div class="skeleton-block flex-1 h-1/2"></div>
-          <div class="skeleton-block flex-1 h-1/4"></div>
-        </div>
-        <canvas id="weeklyChart"></canvas>
-      </div>
-    </div>
-
-    <!-- Recent activity — card list on mobile, table on sm+ -->
-    <div class="bg-base-100 rounded-2xl border border-base-300 p-4 sm:p-5">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="font-bold text-lg">Atividade Recente</h2>
-        <a href="{% url 'student-list' %}" class="btn btn-ghost btn-xs">Ver alunos</a>
-      </div>
-
-      <!-- Mobile card view -->
-      <div class="sm:hidden space-y-3">
-        {% for update in recent_updates %}
-          <div class="border border-base-300 rounded-xl p-3">
-            <div class="flex items-center justify-between mb-1">
-              <p class="font-medium text-sm truncate flex-1 mr-2">{{ update.exercise.display_name }}</p>
-              <span class="text-xs opacity-40 flex-shrink-0">{{ update.created_at|timesince }}</span>
-            </div>
-            <p class="text-xs opacity-50 mb-2">
-              <a href="{% url 'student-detail' update.exercise.workout.athlete.pk %}" class="hover:text-primary">{{ update.exercise.workout.athlete.user.get_full_name|default:update.exercise.workout.athlete.user.username }}</a>
-            </p>
-            <div class="flex items-center gap-2 text-sm">
-              <span class="opacity-50">{{ update.previous_load_kg|default:"-" }} kg</span>
-              <span class="opacity-30">→</span>
-              <span class="font-semibold {% if update.new_load_kg > update.previous_load_kg %}text-success{% elif update.new_load_kg < update.previous_load_kg %}text-error{% endif %}">{{ update.new_load_kg }} kg</span>
-            </div>
+<div class="grid xl:grid-cols-3 gap-4 sm:gap-6 mb-6">
+  <section class="xl:col-span-2 card bg-base-100 border border-base-300 rounded-lg">
+    <div class="card-body p-4 sm:p-5">
+      <div class="flex items-center justify-between gap-3 mb-2"><h2 class="card-title text-lg">Aulas de hoje</h2><a href="{% url 'schedule' %}" class="btn btn-ghost btn-xs">Agenda</a></div>
+      <div class="divide-y divide-base-300">
+        {% for class_obj in today_classes %}
+          <div class="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex items-start gap-3 min-w-0"><div class="w-14 text-sm font-bold text-primary pt-1">{{ class_obj.scheduled_at|date:'H:i' }}</div><div class="min-w-0"><p class="font-semibold truncate">{{ class_obj.athlete.user.get_full_name|default:class_obj.athlete.user.username }}</p><p class="text-sm opacity-60 truncate">{{ class_obj.workout_plan.name|default:'Sem treino vinculado' }}</p></div></div>
+            <div class="flex items-center gap-2 sm:justify-end"><span class="badge {{ class_obj.status_badge_class }}">{{ class_obj.get_status_display }}</span><a href="{% url 'class-update' class_obj.pk %}" class="btn btn-outline btn-xs">Abrir</a></div>
           </div>
         {% empty %}
-          <p class="text-center opacity-50 py-6 text-sm">Nenhuma atualização de carga registrada.</p>
+          <div class="py-10 text-center"><p class="font-medium">Nenhuma aula marcada para hoje.</p><p class="text-sm opacity-50 mt-1">Use a agenda para preencher a semana.</p></div>
         {% endfor %}
       </div>
+    </div>
+  </section>
 
-      <!-- Desktop table view -->
-      <div class="hidden sm:block overflow-x-auto">
-        <table class="table table-sm">
-          <thead>
-            <tr>
-              <th>Exercício</th>
-              <th>Aluno</th>
-              <th>Carga anterior</th>
-              <th>Nova carga</th>
-              <th>Data</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for update in recent_updates %}
-              <tr class="hover">
-                <td class="font-medium">{{ update.exercise.display_name }}</td>
-                <td>
-                  <a href="{% url 'student-detail' update.exercise.workout.athlete.pk %}" class="hover:text-primary transition">
-                    {{ update.exercise.workout.athlete.user.get_full_name|default:update.exercise.workout.athlete.user.username }}
-                  </a>
-                </td>
-                <td>{{ update.previous_load_kg|default:"-" }} kg</td>
-                <td>
-                  <span class="font-semibold {% if update.new_load_kg > update.previous_load_kg %}text-success{% elif update.new_load_kg < update.previous_load_kg %}text-error{% endif %}">
-                    {{ update.new_load_kg }} kg
-                  </span>
-                </td>
-                <td class="opacity-50">{{ update.created_at|timesince }} atrás</td>
-              </tr>
-            {% empty %}
-              <tr><td colspan="5" class="text-center opacity-50 py-6">Nenhuma atualização de carga registrada.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
+  <section class="card bg-base-100 border border-base-300 rounded-lg">
+    <div class="card-body p-4 sm:p-5">
+      <h2 class="card-title text-lg mb-2">Proximos passos</h2>
+      <div class="space-y-3">
+        {% for task in suggested_tasks %}
+          <a href="{{ task.url }}" class="block rounded-lg border border-base-300 p-3 hover:bg-base-200 transition"><div class="flex items-start justify-between gap-2"><p class="font-semibold text-sm">{{ task.title }}</p><span class="badge badge-{{ task.tone }} badge-xs"></span></div><p class="text-xs opacity-60 mt-1">{{ task.detail }}</p></a>
+        {% empty %}
+          <div class="rounded-lg border border-base-300 p-4 text-center"><p class="font-medium">Carteira em dia.</p><p class="text-xs opacity-50 mt-1">Sem tarefas criticas neste momento.</p></div>
+        {% endfor %}
       </div>
     </div>
-
-  </div>
+  </section>
 </div>
+
+<div class="grid xl:grid-cols-3 gap-4 sm:gap-6 mb-6" id="alertas-operacionais">
+  <section class="card bg-base-100 border border-base-300 rounded-lg">
+    <div class="card-body p-4 sm:p-5">
+      <div class="flex items-center justify-between gap-3 mb-2"><h2 class="card-title text-lg">Alunos em atencao</h2><a href="{% url 'student-list' %}" class="btn btn-ghost btn-xs">Alunos</a></div>
+      <div class="space-y-3">
+        {% for item in students_needing_attention %}
+          <a href="{% url 'student-detail' item.athlete.pk %}" class="flex items-center gap-3 rounded-lg border border-base-300 p-3 hover:bg-base-200 transition"><div class="avatar placeholder"><div class="bg-warning text-warning-content w-10 rounded-full"><span class="text-sm font-bold">{{ item.athlete.user.first_name|make_list|first|upper }}{{ item.athlete.user.last_name|make_list|first|upper }}</span></div></div><div class="min-w-0"><p class="font-semibold text-sm truncate">{{ item.athlete.user.get_full_name|default:item.athlete.user.username }}</p><p class="text-xs opacity-60">{{ item.reason }}</p></div></a>
+        {% empty %}
+          <p class="text-sm opacity-60 py-4">Todos os alunos tem atividade recente.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="card bg-base-100 border border-base-300 rounded-lg">
+    <div class="card-body p-4 sm:p-5">
+      <h2 class="card-title text-lg mb-2">Perfis incompletos</h2>
+      <div class="space-y-3">
+        {% for item in incomplete_profiles %}
+          <a href="{% url 'student-profile' item.athlete.pk %}" class="block rounded-lg border border-base-300 p-3 hover:bg-base-200 transition"><p class="font-semibold text-sm truncate">{{ item.athlete.user.get_full_name|default:item.athlete.user.username }}</p><p class="text-xs opacity-60 mt-1">Falta: {{ item.missing|join:', ' }}</p></a>
+        {% empty %}
+          <p class="text-sm opacity-60 py-4">Nenhum perfil pendente.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="card bg-base-100 border border-base-300 rounded-lg">
+    <div class="card-body p-4 sm:p-5">
+      <h2 class="card-title text-lg mb-2">Alertas</h2>
+      <div class="space-y-3">
+        {% for item in load_jump_alerts %}
+          <a href="{% url 'workout-detail' item.update.exercise.workout.pk %}" class="block rounded-lg border border-error/30 bg-error/5 p-3 hover:bg-error/10 transition"><p class="font-semibold text-sm">Carga subiu {{ item.percent }}%</p><p class="text-xs opacity-70 mt-1 truncate">{{ item.update.exercise.workout.athlete.user.get_full_name|default:item.update.exercise.workout.athlete.user.username }} - {{ item.update.exercise.display_name }}</p></a>
+        {% endfor %}
+        {% for class_obj in no_show_alerts %}
+          <a href="{% url 'class-update' class_obj.pk %}" class="block rounded-lg border border-warning/30 bg-warning/5 p-3 hover:bg-warning/10 transition"><p class="font-semibold text-sm">Falta registrada</p><p class="text-xs opacity-70 mt-1 truncate">{{ class_obj.athlete.user.get_full_name|default:class_obj.athlete.user.username }} - {{ class_obj.scheduled_at|date:'d/m H:i' }}</p></a>
+        {% endfor %}
+        {% if not load_jump_alerts and not no_show_alerts %}<p class="text-sm opacity-60 py-4">Sem alertas recentes.</p>{% endif %}
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="grid xl:grid-cols-3 gap-4 sm:gap-6">
+  <section class="xl:col-span-2 card bg-base-100 border border-base-300 rounded-lg">
+    <div class="card-body p-4 sm:p-5">
+      <div class="flex items-center justify-between gap-3 mb-4"><h2 class="card-title text-lg">Atividade semanal</h2><span class="text-xs opacity-50">Atualizacoes de carga</span></div>
+      <div class="h-52 relative"><div id="chart-skeleton" class="absolute inset-0 flex items-end gap-3 px-4 pb-4"><div class="skeleton-block flex-1 h-1/3"></div><div class="skeleton-block flex-1 h-2/3"></div><div class="skeleton-block flex-1 h-1/2"></div><div class="skeleton-block flex-1 h-3/4"></div><div class="skeleton-block flex-1 h-2/5"></div><div class="skeleton-block flex-1 h-1/2"></div><div class="skeleton-block flex-1 h-1/4"></div></div><canvas id="weeklyChart"></canvas></div>
+    </div>
+  </section>
+
+  <section class="card bg-base-100 border border-base-300 rounded-lg">
+    <div class="card-body p-4 sm:p-5">
+      <div class="flex items-center justify-between gap-3 mb-2"><h2 class="card-title text-lg">Planos a revisar</h2><a href="{% url 'plan-list' %}" class="btn btn-ghost btn-xs">Planos</a></div>
+      <div class="space-y-3">
+        {% for plan in plans_to_review %}
+          <a href="{% url 'plan-detail' plan.pk %}" class="block rounded-lg border border-base-300 p-3 hover:bg-base-200 transition"><p class="font-semibold text-sm truncate">{{ plan.name }}</p><p class="text-xs opacity-60 mt-1 truncate">{{ plan.athlete.user.get_full_name|default:plan.athlete.user.username }} - atualizado ha {{ plan.updated_at|timesince }}</p></a>
+        {% empty %}
+          <p class="text-sm opacity-60 py-4">Nenhum plano antigo em revisao.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+</div>
+
+<section class="card bg-base-100 border border-base-300 rounded-lg mt-6">
+  <div class="card-body p-4 sm:p-5">
+    <div class="flex justify-between items-center mb-4"><h2 class="card-title text-lg">Atualizacoes recentes</h2><a href="{% url 'student-list' %}" class="btn btn-ghost btn-xs">Alunos</a></div>
+
+    <div class="sm:hidden space-y-3">
+      {% for update in recent_updates %}
+        <div class="border border-base-300 rounded-lg p-3"><div class="flex items-center justify-between mb-1"><p class="font-medium text-sm truncate flex-1 mr-2">{{ update.exercise.display_name }}</p><span class="text-xs opacity-40 flex-shrink-0">{{ update.created_at|timesince }}</span></div><p class="text-xs opacity-50 mb-2"><a href="{% url 'student-detail' update.exercise.workout.athlete.pk %}" class="hover:text-primary">{{ update.exercise.workout.athlete.user.get_full_name|default:update.exercise.workout.athlete.user.username }}</a></p><div class="flex items-center gap-2 text-sm"><span class="opacity-50">{{ update.previous_load_kg|default:'-' }} kg</span><span class="opacity-30">-&gt;</span><span class="font-semibold {% if update.previous_load_kg and update.new_load_kg > update.previous_load_kg %}text-success{% elif update.previous_load_kg and update.new_load_kg < update.previous_load_kg %}text-error{% endif %}">{{ update.new_load_kg }} kg</span></div></div>
+      {% empty %}
+        <p class="text-center opacity-50 py-6 text-sm">Nenhuma atualizacao de carga registrada.</p>
+      {% endfor %}
+    </div>
+
+    <div class="hidden sm:block overflow-x-auto">
+      <table class="table table-sm">
+        <thead><tr><th>Exercicio</th><th>Aluno</th><th>Carga anterior</th><th>Nova carga</th><th>Data</th></tr></thead>
+        <tbody>
+          {% for update in recent_updates %}
+            <tr class="hover"><td class="font-medium">{{ update.exercise.display_name }}</td><td><a href="{% url 'student-detail' update.exercise.workout.athlete.pk %}" class="hover:text-primary transition">{{ update.exercise.workout.athlete.user.get_full_name|default:update.exercise.workout.athlete.user.username }}</a></td><td>{{ update.previous_load_kg|default:'-' }} kg</td><td><span class="font-semibold {% if update.previous_load_kg and update.new_load_kg > update.previous_load_kg %}text-success{% elif update.previous_load_kg and update.new_load_kg < update.previous_load_kg %}text-error{% endif %}">{{ update.new_load_kg }} kg</span></td><td class="opacity-50">{{ update.created_at|timesince }}</td></tr>
+          {% empty %}
+            <tr><td colspan="5" class="text-center opacity-50 py-6">Nenhuma atualizacao de carga registrada.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -198,10 +160,10 @@
       data: {
         labels: {{ chart_labels|safe }},
         datasets: [{
-          label: 'Atualizações de carga',
+          label: 'Atualizacoes de carga',
           data: {{ chart_values|safe }},
-          backgroundColor: 'oklch(.65 .2 260 / .6)',
-          borderColor: 'oklch(.65 .2 260)',
+          backgroundColor: 'oklch(.7 .16 145 / .65)',
+          borderColor: 'oklch(.62 .18 145)',
           borderWidth: 1,
           borderRadius: 6,
         }]
@@ -209,23 +171,13 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-        },
+        plugins: { legend: { display: false } },
         scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { stepSize: 1, color: 'oklch(.6 0 0)' },
-            grid: { color: 'oklch(.3 0 0 / .3)' },
-          },
-          x: {
-            ticks: { color: 'oklch(.6 0 0)' },
-            grid: { display: false },
-          }
+          y: { beginAtZero: true, ticks: { stepSize: 1, color: 'oklch(.55 0 0)' }, grid: { color: 'oklch(.85 0 0 / .25)' } },
+          x: { ticks: { color: 'oklch(.55 0 0)' }, grid: { display: false } }
         }
       }
     });
-    // Hide skeleton after chart renders
     const skel = document.getElementById('chart-skeleton');
     if (skel) skel.style.display = 'none';
   }

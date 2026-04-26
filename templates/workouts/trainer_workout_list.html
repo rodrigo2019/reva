@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% block title %}Treinos — REVA{% endblock %}
+{% block title %}Workouts — REVA{% endblock %}
 {% block screen_id %}workout-list{% endblock %}
-{% block assistant_screen_name %}Lista de Treinos{% endblock %}
+{% block assistant_screen_name %}Workout List{% endblock %}
 {% block nav_students %}active{% endblock %}
 
 {% block content %}
@@ -9,24 +9,24 @@
   <div>
     <a href="{% url 'student-list' %}" class="text-sm opacity-50 hover:opacity-80 transition inline-flex items-center gap-1 mb-1">
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-      Voltar para alunos
+      Back to students
     </a>
-    <h1 class="text-2xl sm:text-3xl font-extrabold">Treinos</h1>
-    <p class="opacity-50 mt-1 text-sm sm:text-base">Gerencie os treinos dos seus alunos.</p>
+    <h1 class="text-2xl sm:text-3xl font-extrabold">Workouts</h1>
+    <p class="opacity-50 mt-1 text-sm sm:text-base">Manage student workouts with faster filters and denser mobile cards.</p>
   </div>
 </div>
 
 <!-- Filters -->
 <form method="get" class="bg-base-100 rounded-2xl border border-base-300 p-4 mb-6">
-  <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:items-end">
+  <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_180px_140px_auto] md:items-end">
     <fieldset class="fieldset flex-1 sm:min-w-[180px]">
-      <legend class="fieldset-legend text-xs">Buscar</legend>
-      <input class="input input-sm w-full" type="text" name="q" value="{{ search_query }}" placeholder="Nome do treino...">
+      <legend class="fieldset-legend text-xs">Search</legend>
+      <input class="input input-sm w-full" type="text" name="q" value="{{ search_query }}" placeholder="Workout name...">
     </fieldset>
     <fieldset class="fieldset sm:min-w-[160px]">
-      <legend class="fieldset-legend text-xs">Aluno</legend>
-      <select class="select select-sm w-full" name="aluno">
-        <option value="">Todos</option>
+      <legend class="fieldset-legend text-xs">Student</legend>
+      <select class="select select-sm w-full" name="student">
+        <option value="">All</option>
         {% for a in athletes %}
           <option value="{{ a.pk }}" {% if selected_athlete == a.pk|stringformat:"s" %}selected{% endif %}>{{ a.user.get_full_name|default:a.user.username }}</option>
         {% endfor %}
@@ -35,15 +35,15 @@
     <fieldset class="fieldset sm:min-w-[120px]">
       <legend class="fieldset-legend text-xs">Status</legend>
       <select class="select select-sm w-full" name="status">
-        <option value="">Todos</option>
-        <option value="ativo" {% if selected_status == "ativo" %}selected{% endif %}>Ativo</option>
-        <option value="inativo" {% if selected_status == "inativo" %}selected{% endif %}>Inativo</option>
+        <option value="">All</option>
+        <option value="active" {% if selected_status == "active" %}selected{% endif %}>Active</option>
+        <option value="inactive" {% if selected_status == "inactive" %}selected{% endif %}>Inactive</option>
       </select>
     </fieldset>
     <div class="flex gap-2">
-      <button class="btn btn-primary btn-sm flex-1 sm:flex-none" type="submit">Filtrar</button>
+      <button class="btn btn-primary btn-sm flex-1 sm:flex-none" type="submit">Filter</button>
       {% if search_query or selected_athlete or selected_status %}
-        <a href="{% url 'workout-list' %}" class="btn btn-ghost btn-sm flex-1 sm:flex-none">Limpar</a>
+        <a href="{% url 'workout-list' %}" class="btn btn-ghost btn-sm flex-1 sm:flex-none">Reset</a>
       {% endif %}
     </div>
   </div>
@@ -52,7 +52,7 @@
 <div class="grid gap-4">
   {% for workout in workouts %}
     <div class="bg-base-100 rounded-2xl border border-base-300 p-4 sm:p-5 flex items-center gap-3 sm:gap-5 hover:border-primary transition group relative">
-      <a href="{% url 'workout-detail' workout.pk %}" class="absolute inset-0 z-0 rounded-2xl" aria-label="Detalhes"></a>
+      <a href="{% url 'workout-detail' workout.pk %}" class="absolute inset-0 z-0 rounded-2xl" aria-label="Details"></a>
       <div class="avatar placeholder z-[1]">
         <div class="bg-primary text-primary-content w-10 sm:w-12 rounded-xl">
           <span class="text-base sm:text-lg font-bold">{{ workout.athlete.user.username|make_list|first|upper }}</span>
@@ -68,14 +68,14 @@
       <div class="flex items-center gap-2 z-[1] shrink-0">
         {% if workout.is_active %}
           <span class="badge badge-success badge-sm gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-success-content inline-block"></span>Ativo
+            <span class="w-1.5 h-1.5 rounded-full bg-success-content inline-block"></span>Active
           </span>
         {% else %}
-          <span class="badge badge-ghost badge-sm">Inativo</span>
+          <span class="badge badge-ghost badge-sm">Inactive</span>
         {% endif %}
-        <a href="{% url 'workout-session' workout.pk %}" class="btn btn-primary btn-xs sm:btn-sm gap-1 relative z-[2]" title="Iniciar sessão">
+        <a href="{% url 'workout-session' workout.pk %}" class="btn btn-primary btn-xs sm:btn-sm gap-1 relative z-[2]" title="Start session">
           <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <span class="hidden sm:inline">Sessão</span>
+          <span class="hidden sm:inline">Session</span>
         </a>
       </div>
     </div>
@@ -83,13 +83,13 @@
     <div class="bg-base-100 rounded-2xl border border-base-300 p-10 text-center">
       <svg class="w-12 h-12 mx-auto opacity-20 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
       {% if search_query or selected_athlete or selected_status %}
-        <p class="font-semibold mb-1">Nenhum treino encontrado</p>
-        <p class="text-sm opacity-50 mb-4">Tente ajustar os filtros de busca.</p>
-        <a class="btn btn-ghost btn-sm" href="{% url 'workout-list' %}">Limpar filtros</a>
+        <p class="font-semibold mb-1">No workouts found</p>
+        <p class="text-sm opacity-50 mb-4">Try adjusting the current filters.</p>
+        <a class="btn btn-ghost btn-sm" href="{% url 'workout-list' %}">Reset filters</a>
       {% else %}
-        <p class="font-semibold mb-1">Nenhum treino cadastrado</p>
-        <p class="text-sm opacity-50 mb-4">Crie o primeiro treino para começar a acompanhar evolução.</p>
-        <a class="btn btn-primary btn-sm" href="{% url 'workout-create' %}">Criar primeiro treino</a>
+        <p class="font-semibold mb-1">No workouts created yet</p>
+        <p class="text-sm opacity-50 mb-4">Create the first workout to start tracking progression.</p>
+        <a class="btn btn-primary btn-sm" href="{% url 'workout-create' %}">Create first workout</a>
       {% endif %}
     </div>
   {% endfor %}
@@ -100,17 +100,17 @@
 <div class="flex justify-center mt-8">
   <div class="join">
     {% if page_obj.has_previous %}
-      <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_athlete %}aluno={{ selected_athlete }}&{% endif %}{% if selected_status %}status={{ selected_status }}&{% endif %}page={{ page_obj.previous_page_number }}" class="join-item btn btn-sm">«</a>
+      <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_athlete %}student={{ selected_athlete }}&{% endif %}{% if selected_status %}status={{ selected_status }}&{% endif %}page={{ page_obj.previous_page_number }}" class="join-item btn btn-sm">«</a>
     {% endif %}
     {% for num in page_obj.paginator.page_range %}
       {% if page_obj.number == num %}
         <button class="join-item btn btn-sm btn-active">{{ num }}</button>
       {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
-        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_athlete %}aluno={{ selected_athlete }}&{% endif %}{% if selected_status %}status={{ selected_status }}&{% endif %}page={{ num }}" class="join-item btn btn-sm">{{ num }}</a>
+        <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_athlete %}student={{ selected_athlete }}&{% endif %}{% if selected_status %}status={{ selected_status }}&{% endif %}page={{ num }}" class="join-item btn btn-sm">{{ num }}</a>
       {% endif %}
     {% endfor %}
     {% if page_obj.has_next %}
-      <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_athlete %}aluno={{ selected_athlete }}&{% endif %}{% if selected_status %}status={{ selected_status }}&{% endif %}page={{ page_obj.next_page_number }}" class="join-item btn btn-sm">»</a>
+      <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if selected_athlete %}student={{ selected_athlete }}&{% endif %}{% if selected_status %}status={{ selected_status }}&{% endif %}page={{ page_obj.next_page_number }}" class="join-item btn btn-sm">»</a>
     {% endif %}
   </div>
 </div>

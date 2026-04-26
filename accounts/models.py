@@ -19,5 +19,9 @@ class User(AbstractUser):
 		return self.role == UserRole.STUDENT
 
 	def get_athlete_profile(self):
-		"""Return the linked Athlete profile, if the student has already been correlated to a trainer."""
-		return getattr(self, "athlete_profile", None)
+		"""Return the student's independent profile, creating it lazily when needed."""
+		profile = getattr(self, "athlete_profile", None)
+		if profile is not None or not self.is_student or self.pk is None:
+			return profile
+		from athletes.models import Athlete
+		return Athlete.objects.create(user=self)

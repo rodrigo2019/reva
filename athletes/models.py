@@ -7,19 +7,71 @@ from django.db import models
 from django.utils import timezone
 
 
+class StudentRelationshipStatus(models.TextChoices):
+	INDEPENDENT = "independent", "Independente"
+	INVITED = "invited", "Convite pendente"
+	ACTIVE = "active", "Acompanhado"
+	PAUSED = "paused", "Pausado"
+	ENDED = "ended", "Encerrado"
+
+
 class Athlete(models.Model):
 	user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="athlete_profile")
-	trainer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="athletes")
+	trainer = models.ForeignKey(
+		settings.AUTH_USER_MODEL,
+		on_delete=models.SET_NULL,
+		related_name="athletes",
+		null=True,
+		blank=True,
+	)
+	relationship_status = models.CharField(
+		max_length=20,
+		choices=StudentRelationshipStatus.choices,
+		default=StudentRelationshipStatus.INDEPENDENT,
+	)
 	notes = models.TextField(blank=True)
+	allow_student_load_updates = models.BooleanField(
+		default=False,
+		verbose_name="Permitir atualizacao de carga pelo aluno",
+		help_text="Quando ativo, o aluno pode registrar a propria evolucao de carga nos treinos.",
+	)
+	relationship_started_at = models.DateTimeField(null=True, blank=True)
+	relationship_ended_at = models.DateTimeField(null=True, blank=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 
 	def clean(self):
-		if self.user_id == self.trainer_id:
+		if self.trainer_id and self.user_id == self.trainer_id:
 			raise ValidationError("Treinador e aluno não podem ser a mesma pessoa.")
 		if hasattr(self.user, "is_student") and not self.user.is_student:
 			raise ValidationError("O perfil de atleta deve estar vinculado a um usuário aluno.")
-		if hasattr(self.trainer, "is_trainer") and not self.trainer.is_trainer:
+		if self.trainer_id and hasattr(self.trainer, "is_trainer") and not self.trainer.is_trainer:
 			raise ValidationError("O treinador vinculado deve ter perfil de treinador.")
+		if self.trainer_id and self.relationship_status == StudentRelationshipStatus.INDEPENDENT:
+			raise ValidationError("Aluno com treinador ativo nao pode estar marcado como independente.")
+		if not self.trainer_id and self.relationship_status == StudentRelationshipStatus.ACTIVE:
+			raise ValidationError("Vinculo ativo requer um treinador.")
+
+	def save(self, *args, **kwargs):
+		update_fields = kwargs.get("update_fields")
+		changed_fields = set()
+		if self.trainer_id and self.relationship_status in {
+			StudentRelationshipStatus.INDEPENDENT,
+			StudentRelationshipStatus.ENDED,
+		}:
+			self.relationship_status = StudentRelationshipStatus.ACTIVE
+			changed_fields.add("relationship_status")
+			if self.relationship_started_at is None:
+				self.relationship_started_at = timezone.now()
+				changed_fields.add("relationship_started_at")
+			self.relationship_ended_at = None
+			changed_fields.add("relationship_ended_at")
+		elif not self.trainer_id and self.relationship_status == StudentRelationshipStatus.ACTIVE:
+			self.relationship_status = StudentRelationshipStatus.INDEPENDENT
+			changed_fields.add("relationship_status")
+		if update_fields is not None and changed_fields:
+			kwargs["update_fields"] = set(update_fields) | changed_fields
+		self.full_clean()
+		super().save(*args, **kwargs)
 
 	def __str__(self):
 		return f"{self.user.get_full_name() or self.user.username}"
@@ -31,6 +83,18 @@ class Athlete(models.Model):
 	@property
 	def latest_assessment(self):
 		return self.physical_assessments.order_by("-assessed_at").first()
+
+	@property
+	def has_active_trainer(self):
+		return self.trainer_id is not None and self.relationship_status == StudentRelationshipStatus.ACTIVE
+
+	@property
+	def is_independent(self):
+		return not self.has_active_trainer
+
+	@property
+	def can_manage_own_loads(self):
+		return self.is_independent or self.allow_student_load_updates
 
 
 # ---------------------------------------------------------------------------

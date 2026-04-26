@@ -1,0 +1,631 @@
+/* ============================================================
+   REVA Global Assistant — Styles
+   ============================================================ */
+
+/* ---------- Floating Action Button ---------- */
+.reva-fab {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9998;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, oklch(.55 .25 270), oklch(.50 .28 300));
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 24px rgba(120, 60, 255, .45), 0 0 0 0 rgba(120, 60, 255, .3);
+  transition: transform .2s cubic-bezier(.4,0,.2,1), box-shadow .2s;
+  animation: reva-fab-pulse 3s ease-in-out infinite;
+}
+.reva-fab:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 32px rgba(120, 60, 255, .55), 0 0 0 0 rgba(120,60,255,0);
+}
+.reva-fab:active { transform: scale(.95); }
+.reva-fab.open {
+  animation: none;
+  transform: rotate(0deg);
+}
+.reva-fab svg { width: 1.6rem; height: 1.6rem; transition: transform .3s; }
+.reva-fab.open .reva-fab-icon-chat { display: none; }
+.reva-fab.open .reva-fab-icon-close { display: block; }
+.reva-fab:not(.open) .reva-fab-icon-close { display: none; }
+
+@keyframes reva-fab-pulse {
+  0%, 100% { box-shadow: 0 4px 24px rgba(120,60,255,.45), 0 0 0 0 rgba(120,60,255,.3); }
+  50% { box-shadow: 0 4px 24px rgba(120,60,255,.45), 0 0 0 10px rgba(120,60,255,0); }
+}
+
+/* ---------- Chat Panel ---------- */
+.reva-panel {
+  position: fixed;
+  bottom: 6.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  width: 400px;
+  max-width: calc(100vw - 2rem);
+  height: 580px;
+  max-height: calc(100vh - 8rem);
+  background: oklch(.16 .02 260);
+  border: 1px solid oklch(.25 .03 260);
+  border-radius: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 16px 64px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.04);
+  transform: translateY(20px) scale(.96);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .3s cubic-bezier(.4,0,.2,1), opacity .3s;
+}
+.reva-panel.open {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ---------- Panel Header ---------- */
+.reva-header {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: 1rem 1.25rem;
+  background: oklch(.14 .02 260);
+  border-bottom: 1px solid oklch(.22 .03 260);
+  flex-shrink: 0;
+}
+.reva-header-avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, oklch(.55 .25 270), oklch(.50 .28 300));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: .75rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+.reva-header-info { flex: 1; min-width: 0; }
+.reva-header-info h3 {
+  font-size: .95rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+.reva-header-info p {
+  font-size: .72rem;
+  opacity: .5;
+  margin: 0;
+  line-height: 1.2;
+}
+.reva-header-actions { display: flex; gap: .25rem; }
+.reva-header-actions button {
+  background: none;
+  border: none;
+  color: inherit;
+  opacity: .5;
+  cursor: pointer;
+  padding: .35rem;
+  border-radius: .5rem;
+  transition: opacity .15s, background .15s;
+}
+.reva-header-actions button:hover {
+  opacity: 1;
+  background: oklch(.25 .02 260);
+}
+.reva-header-actions button svg { width: 1rem; height: 1rem; }
+
+/* ---------- Screen Context Badge ---------- */
+.reva-context-badge {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .45rem 1rem;
+  background: oklch(.13 .015 260);
+  border-bottom: 1px solid oklch(.2 .02 260);
+  flex-shrink: 0;
+}
+.reva-context-badge svg {
+  width: .85rem;
+  height: .85rem;
+  opacity: .4;
+  flex-shrink: 0;
+}
+.reva-context-badge span {
+  font-size: .72rem;
+  opacity: .45;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Messages Area ---------- */
+.reva-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1rem .5rem;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  scroll-behavior: smooth;
+}
+.reva-messages::-webkit-scrollbar { width: 4px; }
+.reva-messages::-webkit-scrollbar-thumb {
+  background: oklch(.3 .02 260);
+  border-radius: 4px;
+}
+
+/* Welcome state */
+.reva-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex: 1;
+  padding: 1.5rem;
+  gap: .5rem;
+}
+.reva-welcome-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, oklch(.55 .25 270 / .15), oklch(.50 .28 300 / .15));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: .5rem;
+}
+.reva-welcome-icon svg { width: 1.5rem; height: 1.5rem; opacity: .7; color: oklch(.7 .2 280); }
+.reva-welcome h4 { font-size: 1rem; font-weight: 700; margin: 0; }
+.reva-welcome p { font-size: .8rem; opacity: .45; margin: 0; max-width: 260px; line-height: 1.5; }
+
+/* Suggestion chips */
+.reva-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  justify-content: center;
+  margin-top: .75rem;
+  padding: 0 .5rem;
+}
+.reva-suggestion-chip {
+  font-size: .72rem;
+  padding: .4rem .75rem;
+  border-radius: 999px;
+  border: 1px solid oklch(.3 .06 270);
+  background: oklch(.2 .03 270 / .3);
+  color: oklch(.75 .12 270);
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.reva-suggestion-chip:hover {
+  background: oklch(.3 .06 270 / .4);
+  border-color: oklch(.45 .12 270);
+  transform: translateY(-1px);
+}
+
+.reva-recent-actions {
+  width: 100%;
+  max-width: 280px;
+  margin-top: .5rem;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+}
+.reva-recent-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .45rem .6rem;
+  border: 1px solid oklch(.24 .04 260);
+  border-radius: .5rem;
+  background: oklch(.18 .02 260 / .45);
+  font-size: .72rem;
+  text-align: left;
+}
+.reva-recent-action span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.reva-recent-action-status {
+  opacity: .62;
+  flex-shrink: 0;
+}
+
+/* ---------- Message Bubbles ---------- */
+.reva-msg {
+  display: flex;
+  gap: .5rem;
+  max-width: 90%;
+  animation: reva-msg-in .3s ease-out;
+}
+.reva-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+.reva-msg.assistant { align-self: flex-start; }
+
+.reva-msg-avatar {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: .6rem;
+  font-weight: 700;
+  margin-top: .15rem;
+}
+.reva-msg.assistant .reva-msg-avatar {
+  background: linear-gradient(135deg, oklch(.55 .25 270), oklch(.50 .28 300));
+  color: #fff;
+}
+.reva-msg.user .reva-msg-avatar {
+  background: oklch(.35 .04 260);
+  color: oklch(.8 .02 260);
+}
+
+.reva-msg-bubble {
+  padding: .65rem .9rem;
+  border-radius: 1rem;
+  font-size: .82rem;
+  line-height: 1.55;
+  word-break: break-word;
+}
+.reva-msg.user .reva-msg-bubble {
+  background: oklch(.4 .18 270);
+  color: #fff;
+  border-bottom-right-radius: .3rem;
+}
+.reva-msg.assistant .reva-msg-bubble {
+  background: oklch(.22 .02 260);
+  border-bottom-left-radius: .3rem;
+}
+
+/* Transcription label for voice */
+.reva-msg .reva-transcription {
+  font-size: .68rem;
+  opacity: .5;
+  margin-bottom: .25rem;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+}
+.reva-msg .reva-transcription svg { width: .7rem; height: .7rem; }
+
+/* Action buttons in assistant messages */
+.reva-msg-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+  margin-top: .5rem;
+}
+.reva-action-btn {
+  font-size: .7rem;
+  padding: .3rem .65rem;
+  border-radius: .5rem;
+  border: 1px solid oklch(.35 .08 270);
+  background: oklch(.25 .04 270 / .3);
+  color: oklch(.75 .1 270);
+  cursor: pointer;
+  transition: all .15s;
+}
+.reva-action-btn:hover {
+  background: oklch(.35 .08 270 / .4);
+}
+
+@keyframes reva-msg-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Typing Indicator ---------- */
+.reva-typing {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  align-self: flex-start;
+  padding-left: .25rem;
+}
+.reva-typing-avatar {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, oklch(.55 .25 270), oklch(.50 .28 300));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: .6rem;
+  font-weight: 700;
+  color: #fff;
+}
+.reva-typing-dots {
+  display: flex;
+  gap: .25rem;
+  padding: .65rem .9rem;
+  background: oklch(.22 .02 260);
+  border-radius: 1rem;
+  border-bottom-left-radius: .3rem;
+}
+.reva-typing-dots span {
+  width: .4rem;
+  height: .4rem;
+  border-radius: 50%;
+  background: oklch(.5 .08 270);
+  animation: reva-dot-bounce .6s ease-in-out infinite;
+}
+.reva-typing-dots span:nth-child(2) { animation-delay: .15s; }
+.reva-typing-dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes reva-dot-bounce {
+  0%, 100% { opacity: .3; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-3px); }
+}
+
+/* ---------- Input Area ---------- */
+.reva-input-area {
+  padding: .75rem 1rem;
+  background: oklch(.14 .02 260);
+  border-top: 1px solid oklch(.22 .03 260);
+  flex-shrink: 0;
+}
+.reva-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: .5rem;
+}
+.reva-input-field {
+  flex: 1;
+  background: oklch(.2 .02 260);
+  border: 1px solid oklch(.28 .03 260);
+  border-radius: .875rem;
+  padding: .6rem .9rem;
+  color: inherit;
+  font-size: .82rem;
+  font-family: inherit;
+  resize: none;
+  outline: none;
+  max-height: 100px;
+  min-height: 38px;
+  line-height: 1.4;
+  transition: border-color .15s;
+}
+.reva-input-field::placeholder { opacity: .35; }
+.reva-input-field:focus { border-color: oklch(.45 .15 270); }
+
+.reva-input-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .15s;
+  flex-shrink: 0;
+}
+.reva-input-btn svg { width: 1rem; height: 1rem; }
+.reva-input-btn:disabled { opacity: .3; cursor: not-allowed; }
+
+.reva-btn-send {
+  background: linear-gradient(135deg, oklch(.55 .25 270), oklch(.50 .28 300));
+  color: #fff;
+}
+.reva-btn-send:hover:not(:disabled) { transform: scale(1.06); }
+.reva-btn-send:active:not(:disabled) { transform: scale(.95); }
+
+.reva-btn-voice {
+  background: oklch(.25 .03 260);
+  color: oklch(.7 .05 260);
+}
+.reva-btn-voice:hover { background: oklch(.3 .04 260); color: oklch(.8 .05 260); }
+.reva-btn-voice.recording {
+  background: oklch(.45 .22 25);
+  color: #fff;
+  animation: reva-recording-pulse 1s ease-in-out infinite;
+}
+@keyframes reva-recording-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(.45 .22 25 / .4); }
+  50% { box-shadow: 0 0 0 8px oklch(.45 .22 25 / 0); }
+}
+
+/* Voice recording status */
+.reva-voice-status {
+  display: none;
+  align-items: center;
+  gap: .5rem;
+  flex: 1;
+  padding: .6rem .9rem;
+  background: oklch(.2 .02 260);
+  border: 1px solid oklch(.45 .18 25);
+  border-radius: .875rem;
+  font-size: .8rem;
+}
+.reva-voice-status.active { display: flex; }
+.reva-voice-dot {
+  width: .5rem;
+  height: .5rem;
+  border-radius: 50%;
+  background: oklch(.6 .25 25);
+  animation: reva-voice-blink 1s ease-in-out infinite;
+}
+@keyframes reva-voice-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .3; }
+}
+.reva-voice-timer { font-variant-numeric: tabular-nums; opacity: .7; }
+.reva-voice-cancel {
+  margin-left: auto;
+  font-size: .72rem;
+  color: oklch(.7 .15 25);
+  cursor: pointer;
+  padding: .2rem .5rem;
+  border-radius: .4rem;
+  transition: background .15s;
+}
+.reva-voice-cancel:hover { background: oklch(.3 .04 25 / .2); }
+
+/* ---------- Mobile responsive ---------- */
+@media (max-width: 640px) {
+  .reva-panel {
+    bottom: 0;
+    right: 0;
+    width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    border-radius: 0;
+    border: none;
+  }
+  .reva-fab {
+    bottom: 1rem;
+    right: 1rem;
+    width: 3.25rem;
+    height: 3.25rem;
+  }
+  .reva-header { padding: .75rem 1rem; }
+  .reva-input-area {
+    padding: .65rem .75rem;
+    padding-bottom: calc(.65rem + env(safe-area-inset-bottom, 0px));
+  }
+  .reva-input-field {
+    font-size: 16px; /* prevent iOS zoom */
+    min-height: 42px;
+    padding: .55rem .75rem;
+  }
+  .reva-input-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .reva-input-btn svg { width: 1.15rem; height: 1.15rem; }
+  .reva-suggestion-chip {
+    font-size: .75rem;
+    padding: .5rem .85rem;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+  }
+  .reva-msg-bubble {
+    font-size: .85rem;
+    padding: .6rem .8rem;
+  }
+  .reva-header-actions button {
+    padding: .5rem;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* ---------- Streaming & Markdown ---------- */
+.reva-msg-bubble.streaming {
+  min-height: 1.2em;
+}
+.reva-msg-bubble.streaming::after {
+  content: '▊';
+  animation: revaCursorBlink 0.8s step-end infinite;
+  opacity: 0.6;
+  margin-left: 2px;
+}
+@keyframes revaCursorBlink {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0; }
+}
+
+.reva-msg-bubble h2.reva-heading,
+.reva-msg-bubble h3.reva-heading,
+.reva-msg-bubble h4.reva-heading {
+  margin: .6em 0 .3em;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.reva-msg-bubble h2.reva-heading { font-size: 1.1em; }
+.reva-msg-bubble h3.reva-heading { font-size: 1.0em; }
+.reva-msg-bubble h4.reva-heading { font-size: .95em; }
+
+.reva-msg-bubble ul,
+.reva-msg-bubble ol {
+  margin: .4em 0;
+  padding-left: 1.4em;
+}
+.reva-msg-bubble li {
+  margin: .2em 0;
+}
+
+.reva-msg-bubble code {
+  background: oklch(.2 .01 260);
+  padding: .1em .35em;
+  border-radius: .3em;
+  font-size: .88em;
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+}
+
+.reva-msg-bubble pre.reva-code-block {
+  background: oklch(.15 .01 260);
+  padding: .6em .8em;
+  border-radius: .5em;
+  overflow-x: auto;
+  margin: .5em 0;
+  font-size: .82em;
+  line-height: 1.5;
+}
+.reva-msg-bubble pre.reva-code-block code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+.reva-msg-bubble a {
+  color: oklch(.7 .2 270);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.reva-msg-bubble a:hover {
+  color: oklch(.8 .2 270);
+}
+
+.reva-msg-bubble strong {
+  font-weight: 700;
+}
+.reva-msg-bubble em {
+  font-style: italic;
+}
+
+/* ---------- Tool execution indicator ---------- */
+.reva-tool-indicator {
+  display: flex;
+  align-items: center;
+  gap: .4em;
+  margin-top: .6em;
+  padding: .35em .65em;
+  background: oklch(.22 .03 260);
+  border-radius: .4em;
+  font-size: .82em;
+  color: oklch(.7 .15 270);
+  border-left: 3px solid oklch(.55 .25 270);
+}
+.reva-tool-spinner {
+  display: inline-block;
+  width: .85em;
+  height: .85em;
+  border: 2px solid oklch(.4 .1 270);
+  border-top-color: oklch(.7 .25 270);
+  border-radius: 50%;
+  animation: revaToolSpin .6s linear infinite;
+}
+@keyframes revaToolSpin {
+  to { transform: rotate(360deg); }
+}

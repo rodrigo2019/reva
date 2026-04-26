@@ -1,0 +1,387 @@
+{% extends 'base.html' %}
+{% block screen_id %}student-detail{% endblock %}
+{% block assistant_screen_name %}Student Detail: {{ student.user.get_full_name }}{% endblock %}
+{% block title %}{{ student.user.get_full_name }} — REVA{% endblock %}
+{% block nav_students %}active{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="mb-6">
+  <a href="{% url 'student-list' %}" class="text-sm opacity-50 hover:opacity-80 transition inline-flex items-center gap-1 mb-2">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    Back to students
+  </a>
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div class="flex items-center gap-3 sm:gap-4">
+      <div class="avatar placeholder">
+        <div class="bg-primary text-primary-content w-11 sm:w-14 rounded-full">
+          <span class="text-base sm:text-xl font-bold">{{ student.user.first_name|make_list|first|upper }}{{ student.user.last_name|make_list|first|upper }}</span>
+        </div>
+      </div>
+      <div>
+        <h1 class="text-xl sm:text-3xl font-extrabold">{{ student.user.get_full_name }}</h1>
+        <p class="opacity-50 mt-0.5 sm:mt-1 text-xs sm:text-base">Cadastrado em {{ student.created_at|date:"d/m/Y" }}</p>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 sm:flex items-center gap-1.5 sm:gap-2">
+      <a href="{% url 'plan-create' %}?student={{ student.pk }}" class="btn btn-primary btn-sm gap-1 sm:gap-2">
+        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+        <span class="hidden sm:inline">New Plan</span>
+        <span class="sm:hidden">Plan</span>
+      </a>
+      <a href="{{ create_workout_url }}" class="btn btn-ghost btn-sm gap-1 sm:gap-2">
+        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        <span class="hidden sm:inline">New Workout</span>
+        <span class="sm:hidden">Workout</span>
+      </a>
+      <a href="{% url 'student-progress' student.pk %}" class="btn btn-ghost btn-sm gap-1">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+        <span class="hidden sm:inline">Progress</span>
+      </a>
+      <a href="{% url 'student-profile' student.pk %}" class="btn btn-ghost btn-sm gap-1">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span class="hidden sm:inline">Profile</span>
+      </a>
+      <a href="{% url 'student-edit' student.pk %}" class="btn btn-ghost btn-sm gap-1">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        <span class="hidden sm:inline">Edit</span>
+      </a>
+      <a href="{% url 'student-delete' student.pk %}" class="btn btn-ghost btn-sm text-error gap-1">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        <span class="hidden sm:inline">Remove</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+{% if student.notes %}
+<div class="bg-base-100 rounded-2xl border border-base-300 p-4 mb-6">
+  <p class="text-sm"><span class="font-semibold">Notes:</span> {{ student.notes }}</p>
+</div>
+{% endif %}
+
+<div class="bg-base-100 rounded-2xl border border-base-300 p-4 mb-6">
+  <p class="font-semibold text-sm mb-3">Linked account</p>
+  <div class="grid gap-2 sm:grid-cols-4 text-sm">
+    <div>
+      <p class="opacity-50 text-xs uppercase tracking-wide">Nome</p>
+      <p>{{ student.user.get_full_name|default:"-" }}</p>
+    </div>
+    <div>
+      <p class="opacity-50 text-xs uppercase tracking-wide">Username</p>
+      <p>{{ student.user.username }}</p>
+    </div>
+    <div>
+      <p class="opacity-50 text-xs uppercase tracking-wide">Email</p>
+      <p>{{ student.user.email|default:"-" }}</p>
+    </div>
+    <div>
+      <p class="opacity-50 text-xs uppercase tracking-wide">Load updates</p>
+      <p>{% if student.allow_student_load_updates %}Student can update{% else %}Coach only{% endif %}</p>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Profile Summary -->
+{% if latest_assessment or anamnesis %}
+<div class="bg-base-100 rounded-2xl border border-base-300 p-4 mb-6">
+  <div class="flex items-center justify-between mb-3">
+    <p class="font-semibold text-sm flex items-center gap-2">
+      <svg class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      Profile Summary
+    </p>
+    <a href="{% url 'student-profile' student.pk %}" class="btn btn-ghost btn-xs gap-1">Open full profile →</a>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    {% if latest_assessment.weight_kg %}<span class="badge badge-primary badge-sm gap-1">{{ latest_assessment.weight_kg }}kg</span>{% endif %}
+    {% if latest_assessment.height_cm %}<span class="badge badge-ghost badge-sm">{{ latest_assessment.height_cm }}cm</span>{% endif %}
+    {% if latest_assessment.bmi %}<span class="badge {% if latest_assessment.bmi >= 25 or latest_assessment.bmi < 18.5 %}badge-warning{% else %}badge-success{% endif %} badge-sm">BMI {{ latest_assessment.bmi }}</span>{% endif %}
+    {% if latest_assessment.body_fat_percentage %}<span class="badge badge-secondary badge-sm">{{ latest_assessment.body_fat_percentage }}% body fat</span>{% endif %}
+    {% if anamnesis.primary_goal %}<span class="badge badge-info badge-sm">{{ anamnesis.get_primary_goal_display }}</span>{% endif %}
+    {% if anamnesis.training_experience %}<span class="badge badge-ghost badge-sm">{{ anamnesis.get_training_experience_display }}</span>{% endif %}
+  </div>
+</div>
+{% else %}
+<div class="bg-warning/10 border border-warning/40 rounded-2xl p-4 mb-6 flex flex-col sm:flex-row sm:items-center gap-3">
+  <div class="flex items-center gap-3 flex-1">
+    <div class="bg-warning/20 p-2 rounded-xl shrink-0">
+      <svg class="w-6 h-6 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    </div>
+    <div>
+      <p class="font-semibold text-sm">Student profile is incomplete</p>
+      <p class="text-xs opacity-60">Health history and assessments help personalize the program.</p>
+    </div>
+  </div>
+  <a href="{% url 'student-profile' student.pk %}" class="btn btn-warning btn-sm gap-1.5 shrink-0">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+    Complete profile
+  </a>
+</div>
+{% endif %}
+
+<!-- Stats -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+  <div class="stat bg-base-100 rounded-2xl border border-base-300 p-3 sm:p-4">
+    <div class="stat-title text-xs">Workouts</div>
+    <div class="stat-value text-xl sm:text-2xl text-primary">{{ workouts|length }}</div>
+  </div>
+  <div class="stat bg-base-100 rounded-2xl border border-base-300 p-3 sm:p-4">
+    <div class="stat-title text-xs">Active workouts</div>
+    <div class="stat-value text-xl sm:text-2xl text-success">{{ active_workouts }}</div>
+  </div>
+  <div class="stat bg-base-100 rounded-2xl border border-base-300 p-3 sm:p-4">
+    <div class="stat-title text-xs">Exercises</div>
+    <div class="stat-value text-xl sm:text-2xl text-secondary">{{ exercise_count }}</div>
+  </div>
+  <div class="stat bg-base-100 rounded-2xl border border-base-300 p-3 sm:p-4">
+    <div class="stat-title text-xs">Registros</div>
+    <div class="stat-value text-xl sm:text-2xl text-accent">{{ recent_logs|length }}</div>
+  </div>
+</div>
+
+<div class="grid lg:grid-cols-5 gap-4 sm:gap-6">
+
+  <!-- Student workouts -->
+  <div class="lg:col-span-3 space-y-4">
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <h2 class="font-bold text-lg mb-4">Training Plans</h2>
+
+      {% for plan in plans %}
+        <div class="border border-base-300 rounded-xl mb-3 overflow-hidden">
+          <a href="{% url 'plan-detail' plan.pk %}" class="flex items-center gap-3 p-3 hover:bg-base-200 transition group">
+            <div class="w-8 h-8 rounded-lg bg-info/10 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4 text-info" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-bold group-hover:text-primary transition truncate">{{ plan.name }}</p>
+              <p class="text-xs opacity-50">{{ plan.workouts.count }} workout{{ plan.workouts.count|pluralize:"s" }}{% if plan.objective %} · {{ plan.objective|truncatechars:40 }}{% endif %}</p>
+            </div>
+            {% if plan.is_active %}<span class="badge badge-success badge-sm gap-1"><span class="w-1.5 h-1.5 rounded-full bg-success-content inline-block"></span>Active</span>{% else %}<span class="badge badge-ghost badge-sm">Inactive</span>{% endif %}
+          </a>
+          {% for workout in plan.workouts.all %}
+            <a href="{% url 'workout-detail' workout.pk %}" class="flex items-center gap-3 px-3 py-2 pl-12 border-t border-base-300 hover:bg-base-200 transition text-sm group">
+              <div class="flex-1 min-w-0">
+                <p class="group-hover:text-primary transition truncate">{{ workout.name }}</p>
+              </div>
+              {% if workout.is_archived %}<span class="badge badge-warning badge-xs">Archived</span>{% elif workout.is_active %}<span class="badge badge-success badge-xs">Active</span>{% else %}<span class="badge badge-ghost badge-xs">Inactive</span>{% endif %}
+            </a>
+          {% endfor %}
+        </div>
+      {% empty %}
+        <p class="text-center opacity-50 text-sm py-2">No plans created yet.</p>
+      {% endfor %}
+
+      {% if standalone_workouts %}
+        <h3 class="font-semibold text-sm mt-5 mb-3 opacity-60">Standalone Workouts</h3>
+      {% endif %}
+      {% for workout in standalone_workouts %}
+        <a href="{% url 'workout-detail' workout.pk %}" class="flex items-center gap-4 p-3 rounded-xl border border-base-300 mb-3 hover:border-primary transition group">
+          <div class="flex-1 min-w-0">
+            <p class="font-bold group-hover:text-primary transition">{{ workout.name }}</p>
+            <p class="text-sm opacity-50">
+              {{ workout.exercises.count }} exercise{{ workout.exercises.count|pluralize:"s" }}
+              {% if workout.objective %} &bull; {{ workout.objective|truncatechars:40 }}{% endif %}
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            {% if workout.is_active %}
+              <span class="badge badge-success badge-sm gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-success-content inline-block"></span>Active
+              </span>
+            {% else %}
+              <span class="badge badge-ghost badge-sm">Inactive</span>
+            {% endif %}
+            <svg class="w-5 h-5 opacity-30 group-hover:opacity-70 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </div>
+        </a>
+      {% endfor %}
+
+      {% if not plans and not standalone_workouts %}
+        <div class="text-center py-8 opacity-50">
+          <p class="mb-2">No workouts created for this student yet.</p>
+          <a href="{% url 'plan-create' %}?student={{ student.pk }}" class="btn btn-primary btn-sm">Create first plan</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Progress chart -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <h2 class="font-bold text-lg mb-4">Load Progress</h2>
+
+      <div class="flex flex-col sm:flex-row gap-3 mb-4">
+        <fieldset class="fieldset flex-1">
+          <legend class="fieldset-legend">Workout</legend>
+          <select id="workout-select" class="select w-full">
+            <option value="" disabled selected>Select a workout</option>
+          </select>
+        </fieldset>
+        <fieldset class="fieldset flex-1">
+          <legend class="fieldset-legend">Exercise</legend>
+          <select id="exercise-select" class="select w-full" disabled>
+            <option value="" disabled selected>Select an exercise</option>
+          </select>
+        </fieldset>
+      </div>
+
+      <div class="w-full" style="min-height:280px;">
+        <canvas id="progress-chart"></canvas>
+      </div>
+
+      <div id="empty-chart" class="flex flex-col items-center justify-center py-8 opacity-50">
+        <svg class="w-12 h-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6m6 0h6m-6 0V9a2 2 0 012-2h2a2 2 0 012 2v10m6 0v-4a2 2 0 00-2-2h-2a2 2 0 00-2 2v4"/></svg>
+        <p class="text-sm">Select a workout and exercise to see progress.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent history -->
+  <div class="lg:col-span-2">
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-4 sm:p-5 lg:sticky lg:top-24">
+      <h2 class="font-bold text-lg mb-4">Recent History</h2>
+
+      {% for log in recent_logs %}
+        <div class="flex items-start gap-3 py-2.5 {% if not forloop.last %}border-b border-base-300{% endif %}">
+          <div class="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-sm truncate">{{ log.exercise.name }}</p>
+            <p class="text-xs opacity-50">{{ log.exercise.workout.name }}</p>
+            <div class="flex flex-wrap gap-1.5 mt-1">
+              <span class="badge badge-ghost badge-xs">{{ log.sets }}x{{ log.reps }}</span>
+              {% if log.load_kg %}
+                <span class="badge badge-primary badge-xs">{{ log.load_kg }} kg</span>
+              {% endif %}
+              <span class="badge badge-ghost badge-xs">{{ log.rest_seconds }}s</span>
+            </div>
+          </div>
+          <span class="text-xs opacity-40 flex-shrink-0">{{ log.created_at|date:"d/m H:i" }}</span>
+        </div>
+      {% empty %}
+        <p class="text-sm opacity-50 text-center py-4">No progress records yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // chart_data: { workout_name: [{id, name, points: [{date, load}]}] }
+  const chartData = {{ chart_data|safe }};
+  const workoutSelect = document.getElementById('workout-select');
+  const exerciseSelect = document.getElementById('exercise-select');
+  const emptyChart = document.getElementById('empty-chart');
+  const workoutNames = Object.keys(chartData);
+
+  // Populate workout dropdown
+  workoutNames.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    workoutSelect.appendChild(opt);
+  });
+
+  if (workoutNames.length === 0) {
+    workoutSelect.closest('.fieldset').style.display = 'none';
+    exerciseSelect.closest('.fieldset').style.display = 'none';
+  }
+
+  // Update exercise dropdown when workout changes
+  function populateExercises(workoutName) {
+    exerciseSelect.innerHTML = '<option value="" disabled selected>Select an exercise</option>';
+    const exercises = chartData[workoutName] || [];
+    exercises.forEach(ex => {
+      const opt = document.createElement('option');
+      opt.value = ex.id;
+      opt.textContent = ex.name;
+      exerciseSelect.appendChild(opt);
+    });
+    exerciseSelect.disabled = exercises.length === 0;
+    if (exercises.length > 0) {
+      exerciseSelect.value = exercises[0].id;
+      renderExercise(workoutName, exercises[0].id);
+    } else {
+      clearChart();
+    }
+  }
+
+  // Chart setup
+  const ctx = document.getElementById('progress-chart').getContext('2d');
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Load (kg)',
+        data: [],
+        borderColor: 'oklch(0.65 0.24 265)',
+        backgroundColor: 'oklch(0.65 0.24 265 / 0.12)',
+        fill: true,
+        tension: 0.35,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        pointBackgroundColor: 'oklch(0.65 0.24 265)',
+        pointBorderColor: '#1d232a',
+        pointBorderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1d232a',
+          titleColor: '#fff',
+          bodyColor: '#aaa',
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: { label: c => c.parsed.y + ' kg' }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: false,
+          title: { display: true, text: 'Load (kg)', color: 'rgba(255,255,255,0.4)', font: { size: 11 } },
+          grid: { color: 'rgba(255,255,255,0.06)' },
+          ticks: { color: 'rgba(255,255,255,0.5)' }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: 'rgba(255,255,255,0.5)' }
+        }
+      }
+    }
+  });
+
+  function clearChart() {
+    chart.data.labels = [];
+    chart.data.datasets[0].data = [];
+    chart.update();
+    emptyChart.classList.remove('hidden');
+    document.getElementById('progress-chart').style.display = 'none';
+  }
+
+  function renderExercise(workoutName, exerciseId) {
+    const exercises = chartData[workoutName] || [];
+    const ex = exercises.find(e => String(e.id) === String(exerciseId));
+    if (!ex) return;
+    emptyChart.classList.add('hidden');
+    document.getElementById('progress-chart').style.display = 'block';
+    chart.data.labels = ex.points.map(p => p.date);
+    chart.data.datasets[0].data = ex.points.map(p => p.load);
+    chart.update();
+  }
+
+  workoutSelect.addEventListener('change', e => populateExercises(e.target.value));
+  exerciseSelect.addEventListener('change', e => renderExercise(workoutSelect.value, e.target.value));
+
+  // Auto-select first workout and exercise
+  if (workoutNames.length > 0) {
+    workoutSelect.value = workoutNames[0];
+    populateExercises(workoutNames[0]);
+  } else {
+    emptyChart.classList.remove('hidden');
+    document.getElementById('progress-chart').style.display = 'none';
+  }
+</script>
+{% endblock %}

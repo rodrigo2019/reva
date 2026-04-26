@@ -23,13 +23,13 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("core.urls")),
     path("accounts/", include("accounts.urls")),
-    path("alunos/", include("athletes.urls")),
-    path("treinos/", include("workouts.urls")),
-    path("exercicios/", include("workouts.exercise_urls")),
-    path("progresso/", include("progress.urls")),
+    path("students/", include("athletes.urls")),
+    path("workouts/", include("workouts.urls")),
+    path("exercises/", include("workouts.exercise_urls")),
+    path("progress/", include("progress.urls")),
     path("chat/", include("ai_chat.urls")),
-    path("assistente/api/", include("ai_assistant.urls")),
-    path("agenda/", include("schedule.urls")),
+    path("assistant/api/", include("ai_assistant.urls")),
+    path("schedule/", include("schedule.urls")),
 ]
 
 if settings.DEBUG:

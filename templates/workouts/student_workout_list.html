@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Meus treinos — REVA{% endblock %}
+{% block screen_id %}student-workout-list{% endblock %}
+{% block assistant_screen_name %}Meus treinos{% endblock %}
+{% block nav_student_workouts %}active{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl sm:text-3xl font-extrabold">Meus treinos</h1>
+  <p class="opacity-50 mt-1 text-sm sm:text-base">Revise treinos ativos, objetivos, exercicios e permissoes de ajuste.</p>
+</div>
+
+{% if workouts %}
+  <div class="grid gap-3 sm:gap-4 xl:grid-cols-2">
+    {% for workout in workouts %}
+      <a href="{% url 'student-workout-detail' workout.pk %}" class="bg-base-100 rounded-2xl border border-base-300 p-4 hover:border-primary transition block">
+        <div class="flex items-start justify-between gap-3 mb-2">
+          <div>
+            <h2 class="font-bold text-base sm:text-lg">{{ workout.name }}</h2>
+            <p class="text-sm opacity-60">{{ workout.plan.name|default:"Standalone workout" }}</p>
+          </div>
+          {% if workout.is_active %}<span class="badge badge-success badge-sm">Active</span>{% else %}<span class="badge badge-ghost badge-sm">Inactive</span>{% endif %}
+        </div>
+        {% if workout.objective %}<p class="text-sm opacity-70 mb-4">{{ workout.objective }}</p>{% endif %}
+        {% if workout.exercises.all %}
+          <p class="text-sm opacity-60 mb-3">
+            Exercises:
+            {% for exercise in workout.exercises.all|slice:":2" %}
+              {{ exercise.display_name }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+            {% if workout.exercises.count > 2 %}...{% endif %}
+          </p>
+        {% endif %}
+        <div class="grid grid-cols-3 gap-2 text-sm">
+          <div class="rounded-xl bg-base-200 p-3">
+            <p class="opacity-50 text-xs">Exercises</p>
+            <p class="font-semibold">{{ workout.exercises.count }}</p>
+          </div>
+          <div class="rounded-xl bg-base-200 p-3">
+            <p class="opacity-50 text-xs">Updated</p>
+            <p class="font-semibold">{{ workout.updated_at|date:"d/m" }}</p>
+          </div>
+          <div class="rounded-xl bg-base-200 p-3">
+            <p class="opacity-50 text-xs">Ajustes</p>
+            <p class="font-semibold">{% if profile.can_manage_own_loads %}Liberado{% else %}Aprovacao{% endif %}</p>
+          </div>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-8 text-center">
+    <p class="font-semibold mb-2">Nenhum treino disponivel ainda</p>
+    <p class="text-sm opacity-60">Voce pode criar treinos independentes ou receber um plano quando houver professor vinculado.</p>
+  </div>
+{% endif %}
+{% endblock %}

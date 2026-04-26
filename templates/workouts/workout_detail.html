@@ -8,7 +8,7 @@
 <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
   <div>
     <div class="flex items-center gap-1 text-sm opacity-50 mb-2">
-      <a href="{% url 'student-list' %}" class="hover:opacity-80 transition">Alunos</a>
+      <a href="{% url 'student-list' %}" class="hover:opacity-80 transition">Students</a>
       <span>›</span>
       <a href="{% url 'student-detail' workout.athlete.pk %}" class="hover:opacity-80 transition">{{ workout.athlete.user.get_full_name|default:workout.athlete.user.username }}</a>
       {% if workout.plan %}
@@ -20,30 +20,30 @@
     </div>
     <h1 class="text-2xl sm:text-3xl font-extrabold">{{ workout.name }}</h1>
     <p class="opacity-50 mt-1">
-      {% if workout.objective %}{{ workout.objective }}{% elif workout.plan %}Treino do plano {{ workout.plan.name }}{% else %}Treino avulso{% endif %}
+      {% if workout.objective %}{{ workout.objective }}{% elif workout.plan %}Workout from {{ workout.plan.name }}{% else %}Standalone workout{% endif %}
     </p>
   </div>
-  <div class="flex items-center gap-2 flex-wrap">
+  <div class="grid grid-cols-2 sm:flex items-center gap-2">
     {% if workout.is_archived %}
-      <span class="badge badge-warning gap-1">Arquivado</span>
+      <span class="badge badge-warning gap-1">Archived</span>
     {% elif workout.is_active %}
       <span class="badge badge-success gap-1">
-        <span class="w-2 h-2 rounded-full bg-success-content inline-block"></span>Ativo
+        <span class="w-2 h-2 rounded-full bg-success-content inline-block"></span>Active
       </span>
     {% else %}
-      <span class="badge badge-ghost">Inativo</span>
+      <span class="badge badge-ghost">Inactive</span>
     {% endif %}
     <a href="{% url 'workout-edit' workout.pk %}" class="btn btn-ghost btn-sm gap-1">
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-      <span class="hidden sm:inline">Editar</span>
+      <span class="hidden sm:inline">Edit</span>
     </a>
     <a href="{% url 'workout-session' workout.pk %}" class="btn btn-primary btn-sm gap-1">
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      <span class="hidden sm:inline">Iniciar</span> Sessão
+      <span class="hidden sm:inline">Start</span> Session
     </a>
     <a href="{% url 'workout-delete' workout.pk %}" class="btn btn-ghost btn-sm text-error gap-1">
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-      <span class="hidden sm:inline">Excluir</span>
+      <span class="hidden sm:inline">Delete</span>
     </a>
   </div>
 </div>
@@ -56,7 +56,7 @@
     </div>
     <div>
       <p class="text-lg sm:text-xl font-extrabold">{{ exercise_count }}</p>
-      <p class="text-[10px] sm:text-xs opacity-50">Exercício{{ exercise_count|pluralize:"s" }}</p>
+      <p class="text-[10px] sm:text-xs opacity-50">Exercise{{ exercise_count|pluralize:"s" }}</p>
     </div>
   </div>
   <div class="bg-base-100 rounded-xl border border-base-300 p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
@@ -74,7 +74,7 @@
     </div>
     <div>
       <p class="text-lg sm:text-xl font-extrabold">{{ total_load_updates }}</p>
-      <p class="text-[10px] sm:text-xs opacity-50">Atualizações</p>
+      <p class="text-[10px] sm:text-xs opacity-50">Updates</p>
     </div>
   </div>
   <div class="bg-base-100 rounded-xl border border-base-300 p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
@@ -86,7 +86,7 @@
       {% endif %}
     </div>
     <div>
-      <p class="text-lg sm:text-xl font-extrabold">{% if workout.is_active %}Ativo{% else %}Inativo{% endif %}</p>
+      <p class="text-lg sm:text-xl font-extrabold">{% if workout.is_active %}Active{% else %}Inactive{% endif %}</p>
       <p class="text-[10px] sm:text-xs opacity-50 truncate max-w-24">{{ workout.objective|default:"Status" }}</p>
     </div>
   </div>
@@ -94,12 +94,12 @@
 
 <div class="grid lg:grid-cols-5 gap-4 sm:gap-6">
 
-  <!-- Exercícios — principal -->
+  <!-- Main exercise list -->
   <div class="lg:col-span-3 space-y-4">
     <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="font-bold text-lg">Exercícios</h2>
-        <span class="badge badge-ghost badge-sm">{{ workout.exercises.all|length }} exercício{{ workout.exercises.all|length|pluralize:"s" }}</span>
+        <h2 class="font-bold text-lg">Exercises</h2>
+        <span class="badge badge-ghost badge-sm">{{ workout.exercises.all|length }} exercise{{ workout.exercises.all|length|pluralize:"s" }}</span>
       </div>
 
       {% for exercise in workout.exercises.all %}
@@ -120,7 +120,7 @@
               </p>
               <p class="text-sm opacity-50 mt-1">
                 {{ exercise.sets }}x{{ exercise.reps }}
-                &nbsp;•&nbsp; Descanso: {{ exercise.rest_seconds }}s
+                &nbsp;•&nbsp; Rest: {{ exercise.rest_seconds }}s
                 {% if exercise.notes %}&nbsp;•&nbsp; {{ exercise.notes }}{% endif %}
               </p>
               {% if exercise.muscle_group_label %}
@@ -136,13 +136,13 @@
             </div>
           </div>
 
-          <!-- Collapse: Atualizar exercício (todos os campos) -->
+          <!-- Collapse: edit full exercise -->
           <div class="collapse collapse-arrow bg-base-200 rounded-lg mb-2">
             <input type="checkbox" />
             <div class="collapse-title font-medium text-sm py-2 min-h-0">
               <span class="flex items-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                Editar exercício
+                Edit exercise
               </span>
             </div>
             <div class="collapse-content px-3 pb-3">
@@ -154,7 +154,7 @@
                 </fieldset>
                 <div class="grid grid-cols-2 gap-3">
                   <fieldset class="fieldset">
-                    <legend class="fieldset-legend text-xs">Séries</legend>
+                    <legend class="fieldset-legend text-xs">Sets</legend>
                     <input class="input input-sm w-full" type="number" name="sets" value="{{ exercise.sets }}" min="1" required>
                   </fieldset>
                   <fieldset class="fieldset">
@@ -164,35 +164,35 @@
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                   <fieldset class="fieldset">
-                    <legend class="fieldset-legend text-xs">Carga (kg)</legend>
+                    <legend class="fieldset-legend text-xs">Load (kg)</legend>
                     <input class="input input-sm w-full" type="number" name="current_load_kg" step="0.01" min="0" value="{{ exercise.current_load_kg|default:'' }}" placeholder="0.00">
                   </fieldset>
                   <fieldset class="fieldset">
-                    <legend class="fieldset-legend text-xs">Descanso (s)</legend>
+                    <legend class="fieldset-legend text-xs">Rest (s)</legend>
                     <input class="input input-sm w-full" type="number" name="rest_seconds" value="{{ exercise.rest_seconds }}" min="0" required>
                   </fieldset>
                 </div>
                 <fieldset class="fieldset">
-                  <legend class="fieldset-legend text-xs">Observação</legend>
-                  <input class="input input-sm w-full" type="text" name="notes" value="{{ exercise.notes }}" placeholder="ex: foco em excêntrica">
+                  <legend class="fieldset-legend text-xs">Notes</legend>
+                  <input class="input input-sm w-full" type="text" name="notes" value="{{ exercise.notes }}" placeholder="e.g. controlled eccentric phase">
                 </fieldset>
-                <button class="btn btn-primary btn-sm btn-block" type="submit">Salvar alterações</button>
+                <button class="btn btn-primary btn-sm btn-block" type="submit">Save changes</button>
               </form>
               <form method="post" action="{% url 'exercise-delete' workout.pk exercise.pk %}" class="mt-2">
                 {% csrf_token %}
                 <button class="btn btn-error btn-sm btn-outline btn-block gap-1" type="button" onclick="document.getElementById('delete-modal-{{ exercise.pk }}').showModal()">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                  Excluir exercício
+                  Delete exercise
                 </button>
                 <dialog id="delete-modal-{{ exercise.pk }}" class="modal">
                   <div class="modal-box">
-                    <h3 class="text-lg font-bold">Excluir exercício</h3>
-                    <p class="py-4 opacity-70">Tem certeza que deseja excluir <strong>{{ exercise.display_name }}</strong>? Todo o histórico de carga será perdido.</p>
+                    <h3 class="text-lg font-bold">Delete exercise</h3>
+                    <p class="py-4 opacity-70">Delete <strong>{{ exercise.display_name }}</strong>? All load history for this exercise will be lost.</p>
                     <div class="modal-action">
-                      <button type="button" class="btn btn-ghost" onclick="document.getElementById('delete-modal-{{ exercise.pk }}').close()">Cancelar</button>
+                      <button type="button" class="btn btn-ghost" onclick="document.getElementById('delete-modal-{{ exercise.pk }}').close()">Cancel</button>
                       <button type="submit" class="btn btn-error gap-1">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        Excluir
+                        Delete
                       </button>
                     </div>
                   </div>
@@ -206,14 +206,14 @@
           <form method="post" action="{% url 'exercise-load-update' workout.pk exercise.pk %}" class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-end">
             {% csrf_token %}
             <fieldset class="fieldset flex-1">
-              <legend class="fieldset-legend text-xs">Nova carga (kg)</legend>
+              <legend class="fieldset-legend text-xs">New load (kg)</legend>
               <input class="input input-sm w-full" name="new_load_kg" type="number" step="0.01" min="0" placeholder="0.00" required>
             </fieldset>
             <fieldset class="fieldset flex-1">
-              <legend class="fieldset-legend text-xs">Motivo (opcional)</legend>
-              <input class="input input-sm w-full" name="reason" type="text" placeholder="ex: boa execução">
+              <legend class="fieldset-legend text-xs">Reason (optional)</legend>
+              <input class="input input-sm w-full" name="reason" type="text" placeholder="e.g. strong technique today">
             </fieldset>
-            <button class="btn btn-primary btn-sm w-full sm:w-auto" type="submit">Atualizar</button>
+            <button class="btn btn-primary btn-sm w-full sm:w-auto" type="submit">Update</button>
           </form>
 
           <!-- Exercise Alternatives / Substitutes -->
@@ -222,7 +222,7 @@
             <div class="collapse-title font-medium text-sm py-2 min-h-0">
               <span class="flex items-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                Substitutos ({{ exercise.alternatives.count }})
+                Alternatives ({{ exercise.alternatives.count }})
               </span>
             </div>
             <div class="collapse-content px-3 pb-3">
@@ -235,32 +235,32 @@
                   </div>
                   <form method="post" action="{% url 'exercise-remove-alternative' workout.pk exercise.pk alt.pk %}" class="inline">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-ghost btn-xs text-error" title="Remover substituto">
+                    <button type="submit" class="btn btn-ghost btn-xs text-error" title="Remove alternative">
                       <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                   </form>
                 </div>
               {% empty %}
-                <p class="text-xs opacity-40 py-1">Nenhum substituto adicionado.</p>
+                <p class="text-xs opacity-40 py-1">No alternatives added yet.</p>
               {% endfor %}
 
               <!-- Add alternative form -->
               <form method="post" action="{% url 'exercise-add-alternative' workout.pk exercise.pk %}" class="mt-3 space-y-2">
                 {% csrf_token %}
-                <p class="text-[10px] font-bold opacity-40 uppercase tracking-wider">Adicionar substituto</p>
+                <p class="text-[10px] font-bold opacity-40 uppercase tracking-wider">Add alternative</p>
                 <div class="flex flex-col sm:flex-row gap-2">
                   <select class="select select-sm flex-1" name="exercise_ref" required>
-                    <option value="" disabled selected>Selecionar exercício</option>
+                    <option value="" disabled selected>Select an exercise</option>
                     {% for ex in alternative_form.exercise_ref.field.queryset %}
                       <option value="{{ ex.pk }}">{{ ex.name }} ({{ ex.get_muscle_group_display }})</option>
                     {% endfor %}
                   </select>
-                  <input class="input input-sm flex-1" type="number" name="order" value="{{ exercise.alternatives.count|add:1 }}" min="1" placeholder="Ordem" required>
+                  <input class="input input-sm flex-1" type="number" name="order" value="{{ exercise.alternatives.count|add:1 }}" min="1" placeholder="Order" required>
                 </div>
-                <input class="input input-sm w-full" type="text" name="notes" placeholder="Observação (opcional)">
+                <input class="input input-sm w-full" type="text" name="notes" placeholder="Notes (optional)">
                 <button class="btn btn-sm btn-outline btn-primary btn-block gap-1" type="submit">
                   <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                  Adicionar
+                  Add
                 </button>
               </form>
             </div>
@@ -271,44 +271,44 @@
             {% if updates_count > 0 %}
               <div class="mt-3">
                 <div class="flex items-center justify-between mb-1">
-                  <span class="text-xs opacity-50">Evolução de carga ({{ updates_count }} registro{{ updates_count|pluralize:"s" }})</span>
+                  <span class="text-xs opacity-50">Load progress ({{ updates_count }} record{{ updates_count|pluralize:"s" }})</span>
                 </div>
                 <div style="height:110px;">
                   <canvas id="chart-ex-{{ exercise.pk }}"></canvas>
                 </div>
               </div>
             {% else %}
-              <p class="text-xs opacity-30 mt-3">Nenhum registro de carga ainda.</p>
+              <p class="text-xs opacity-30 mt-3">No load records yet.</p>
             {% endif %}
           {% endwith %}
         </div>
       {% empty %}
         <div class="flex flex-col items-center py-12 opacity-60">
           <svg class="w-16 h-16 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
-          <p class="font-semibold mb-1">Nenhum exercício adicionado</p>
-          <p class="text-sm mb-4">Use o formulário ao lado para adicionar o primeiro exercício a este treino.</p>
-          <span class="badge badge-ghost">Dica: busque no catálogo para agilizar</span>
+          <p class="font-semibold mb-1">No exercises added yet</p>
+          <p class="text-sm mb-4">Use the form on the side to add the first exercise to this workout.</p>
+          <span class="badge badge-ghost">Tip: search the catalog to move faster</span>
         </div>
       {% endfor %}
     </div>
   </div>
 
-  <!-- Sidebar — adicionar exercício -->
+  <!-- Sidebar — add exercise -->
   <div class="lg:col-span-2">
     <div class="bg-base-100 rounded-2xl border border-base-300 p-4 sm:p-5 lg:sticky lg:top-24">
-      <h2 class="font-bold text-lg mb-4">Adicionar Exercício</h2>
+      <h2 class="font-bold text-lg mb-4">Add Exercise</h2>
 
-      <!-- Toggle: Catálogo vs Custom -->
+      <!-- Toggle: catalog vs custom -->
       <div class="tabs tabs-box mb-4">
-        <a class="tab tab-active" id="tab-catalog" onclick="toggleMode('catalog')">Do catálogo</a>
-        <a class="tab" id="tab-custom" onclick="toggleMode('custom')">Customizado</a>
+        <a class="tab tab-active" id="tab-catalog" onclick="toggleMode('catalog')">Catalog</a>
+        <a class="tab" id="tab-custom" onclick="toggleMode('custom')">Custom</a>
       </div>
 
       <!-- Catalog search -->
       <div id="catalog-section" class="mb-4">
         <fieldset class="fieldset mb-3">
-          <legend class="fieldset-legend">Buscar exercício</legend>
-          <input class="input w-full" type="text" id="catalog-search" placeholder="Digite para buscar..." autocomplete="off">
+          <legend class="fieldset-legend">Search exercise</legend>
+          <input class="input w-full" type="text" id="catalog-search" placeholder="Type to search..." autocomplete="off">
         </fieldset>
         <div id="catalog-results" class="space-y-2 max-h-64 overflow-y-auto"></div>
         <!-- Selected exercise display -->
@@ -330,13 +330,13 @@
 
         <!-- Custom name — shown only in custom mode or when no catalog selection -->
         <fieldset class="fieldset hidden" id="custom-name-field">
-          <legend class="fieldset-legend">Nome do exercício</legend>
-          <input class="input w-full" type="text" name="name" id="exercise-name-input" placeholder="ex: Agachamento livre">
+          <legend class="fieldset-legend">Exercise name</legend>
+          <input class="input w-full" type="text" name="name" id="exercise-name-input" placeholder="e.g. Barbell squat">
         </fieldset>
 
         <div class="grid grid-cols-2 gap-3">
           <fieldset class="fieldset">
-            <legend class="fieldset-legend">Séries</legend>
+            <legend class="fieldset-legend">Sets</legend>
             <input class="input w-full" type="number" name="sets" id="input-sets" value="3" min="1" required>
           </fieldset>
           <fieldset class="fieldset">
@@ -347,26 +347,26 @@
 
         <div class="grid grid-cols-2 gap-3">
           <fieldset class="fieldset">
-            <legend class="fieldset-legend">Carga inicial (kg)</legend>
+            <legend class="fieldset-legend">Starting load (kg)</legend>
             <input class="input w-full" type="number" name="current_load_kg" step="0.01" min="0" placeholder="0.00">
           </fieldset>
           <fieldset class="fieldset">
-            <legend class="fieldset-legend">Descanso (s)</legend>
+            <legend class="fieldset-legend">Rest (s)</legend>
             <input class="input w-full" type="number" name="rest_seconds" id="input-rest" value="60" min="0" required>
           </fieldset>
         </div>
 
         <fieldset class="fieldset">
-          <legend class="fieldset-legend">Ordem</legend>
+          <legend class="fieldset-legend">Order</legend>
           <input class="input w-full" type="number" name="exercise_order" value="{{ workout.exercises.count|add:1 }}" min="1" required>
         </fieldset>
 
         <fieldset class="fieldset">
-          <legend class="fieldset-legend">Observação</legend>
-          <input class="input w-full" type="text" name="notes" placeholder="ex: foco em excêntrica">
+          <legend class="fieldset-legend">Notes</legend>
+          <input class="input w-full" type="text" name="notes" placeholder="e.g. controlled eccentric phase">
         </fieldset>
 
-        <button class="btn btn-primary btn-block" type="submit">Adicionar exercício</button>
+        <button class="btn btn-primary btn-block" type="submit">Add exercise</button>
       </form>
     </div>
   </div>
@@ -497,7 +497,7 @@
     clearTimeout(searchTimeout);
     const q = this.value.trim();
     if (q.length < 2) {
-      resultsContainer.innerHTML = '<p class="text-xs opacity-40 text-center py-2">Digite ao menos 2 caracteres...</p>';
+      resultsContainer.innerHTML = '<p class="text-xs opacity-40 text-center py-2">Type at least 2 characters...</p>';
       return;
     }
     searchTimeout = setTimeout(() => {
@@ -505,7 +505,7 @@
         .then(r => r.json())
         .then(data => {
           if (data.results.length === 0) {
-            resultsContainer.innerHTML = '<p class="text-xs opacity-40 text-center py-2">Nenhum exercício encontrado.</p>';
+            resultsContainer.innerHTML = '<p class="text-xs opacity-40 text-center py-2">No exercises found.</p>';
             return;
           }
           resultsContainer.innerHTML = data.results.map(ex => `
@@ -546,7 +546,7 @@
           </button>
         `).join('');
       } else {
-        resultsContainer.innerHTML = '<p class="text-xs opacity-40 text-center py-2">Nenhum exercício no catálogo. <a href="{% url "exercise-catalog-create" %}" class="underline text-primary">Cadastre o primeiro</a>.</p>';
+        resultsContainer.innerHTML = '<p class="text-xs opacity-40 text-center py-2">No exercises in the catalog. <a href="{% url "exercise-catalog-create" %}" class="underline text-primary">Add the first one</a>.</p>';
       }
     });
 
@@ -556,7 +556,7 @@
     const name = document.getElementById('exercise-name-input').value.trim();
     if (!ref && !name) {
       e.preventDefault();
-      alert('Selecione um exercício do catálogo ou mude para "Customizado" e informe um nome.');
+      alert('Select an exercise from the catalog or switch to "Custom" and enter a name.');
     }
   });
 

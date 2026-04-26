@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Remove Class — REVA{% endblock %}
+{% block screen_id %}schedule-delete{% endblock %}
+{% block nav_schedule %}active{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-6 text-center">
+    <div class="w-14 h-14 bg-error/10 rounded-full flex items-center justify-center mx-auto mb-4">
+      <svg class="w-7 h-7 text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+      </svg>
+    </div>
+    <h1 class="text-xl font-extrabold mb-2">Remove class from schedule?</h1>
+    <p class="opacity-60 mb-1">
+      <strong>{{ class_obj.athlete.user.get_full_name }}</strong>
+    </p>
+    <p class="opacity-60 mb-6">
+      {{ class_obj.scheduled_at|date:"d/m/Y H:i" }} · {{ class_obj.duration_minutes }} min
+      {% if class_obj.workout_plan %}· {{ class_obj.workout_plan.name }}{% endif %}
+    </p>
+
+    <div class="flex flex-col-reverse sm:flex-row gap-3 justify-center">
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-error">Yes, remove</button>
+      </form>
+      <a href="{% url 'schedule' %}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

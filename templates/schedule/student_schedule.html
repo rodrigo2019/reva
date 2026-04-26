@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Minha agenda — REVA{% endblock %}
+{% block screen_id %}student-schedule{% endblock %}
+{% block assistant_screen_name %}Minha agenda{% endblock %}
+{% block nav_student_schedule %}active{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl sm:text-3xl font-extrabold">Minha agenda</h1>
+  <p class="opacity-50 mt-1 text-sm sm:text-base">Acompanhe compromissos de acompanhamento e historico recente.</p>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-5 lg:col-span-2">
+    <h2 class="font-bold text-lg mb-3">Proximo compromisso</h2>
+    {% if next_class %}
+      <p class="text-xl font-semibold">{{ next_class.scheduled_at|date:"d/m/Y H:i" }}</p>
+      <p class="text-sm opacity-60 mt-1">Com {{ next_class.trainer.get_full_name|default:next_class.trainer.username }}</p>
+      <p class="text-sm mt-3">Treino relacionado: {{ next_class.workout_plan.name|default:"Compromisso avulso" }}</p>
+      {% if next_class.notes %}<p class="text-sm opacity-70 mt-2">{{ next_class.notes }}</p>{% endif %}
+    {% else %}
+      <p class="text-sm opacity-60">Nenhum compromisso futuro.</p>
+    {% endif %}
+  </div>
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+    <h2 class="font-bold text-lg mb-3">Resumo</h2>
+    <div class="space-y-2 text-sm">
+      <p><span class="opacity-50">Professor:</span> {% if profile.has_active_trainer %}{{ profile.trainer.get_full_name|default:profile.trainer.username }}{% else %}Opcional{% endif %}</p>
+      <p><span class="opacity-50">Futuros:</span> {{ upcoming_classes|length }}</p>
+      <p><span class="opacity-50">Recentes:</span> {{ recent_classes|length }}</p>
+    </div>
+  </div>
+</div>
+
+<div class="grid xl:grid-cols-2 gap-4 sm:gap-6">
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+    <h2 class="font-bold text-lg mb-4">Proximos compromissos</h2>
+    {% for cls in upcoming_classes %}
+      <div class="rounded-xl border border-base-300 p-4 mb-3">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="font-semibold">{{ cls.scheduled_at|date:"d/m/Y H:i" }}</p>
+            <p class="text-sm opacity-60">{{ cls.duration_minutes }} min · {{ cls.workout_plan.name|default:"Sem treino vinculado" }}</p>
+          </div>
+          <span class="badge {{ cls.status_badge_class }} badge-sm">{{ cls.get_status_display }}</span>
+        </div>
+        {% if cls.notes %}<p class="text-sm opacity-70 mt-3">{{ cls.notes }}</p>{% endif %}
+      </div>
+    {% empty %}
+      <p class="text-sm opacity-60">Nenhum compromisso futuro encontrado.</p>
+    {% endfor %}
+  </div>
+
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+    <h2 class="font-bold text-lg mb-4">Historico recente</h2>
+    {% for cls in recent_classes %}
+      <div class="rounded-xl border border-base-300 p-4 mb-3">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="font-semibold">{{ cls.scheduled_at|date:"d/m/Y H:i" }}</p>
+            <p class="text-sm opacity-60">{{ cls.duration_minutes }} min · {{ cls.workout_plan.name|default:"Sem treino vinculado" }}</p>
+          </div>
+          <span class="badge {{ cls.status_badge_class }} badge-sm">{{ cls.get_status_display }}</span>
+        </div>
+      </div>
+    {% empty %}
+      <p class="text-sm opacity-60">Nenhum compromisso passado ainda.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}Chat IA — REVA{% endblock %}
+{% block title %}AI Chat — REVA{% endblock %}
 {% block nav_chat %}active{% endblock %}
 
 {% block content %}
 <div class="mb-6">
-  <h1 class="text-2xl sm:text-3xl font-extrabold">Chat IA</h1>
-  <p class="opacity-50 mt-1 text-sm sm:text-base">Tire dúvidas sobre treino, nutrição e progressão com a inteligência artificial.</p>
+  <h1 class="text-2xl sm:text-3xl font-extrabold">AI Chat</h1>
+  <p class="opacity-50 mt-1 text-sm sm:text-base">Ask about training, nutrition, and progression with contextual AI guidance.</p>
 </div>
 
 <div class="bg-base-100 rounded-2xl border border-base-300 flex flex-col" style="height:calc(100vh - 180px);min-height:360px;">
@@ -24,7 +24,7 @@
         </div>
       {% else %}
         <div class="flex justify-start gap-3">
-          <div class="w-8 h-8 rounded-full bg-primary text-primary-content flex items-center justify-center text-xs font-bold shrink-0 mt-1">IA</div>
+          <div class="w-8 h-8 rounded-full bg-primary text-primary-content flex items-center justify-center text-xs font-bold shrink-0 mt-1">AI</div>
           <div class="max-w-[85%] sm:max-w-[75%] bg-base-200 rounded-2xl rounded-bl-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm leading-relaxed">
             {{ msg.content }}
           </div>
@@ -33,13 +33,13 @@
     {% empty %}
       <div class="flex flex-col items-center justify-center h-full opacity-40 text-center">
         <svg class="w-16 h-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16h6M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-        <p class="font-semibold text-lg">Olá! Sou a IA da REVA</p>
-        <p class="text-sm mt-1 max-w-sm">Pergunte sobre progressão de carga, técnicas de exercícios ou qualquer dúvida sobre seu treino.</p>
+        <p class="font-semibold text-lg">Hi, I’m REVA AI</p>
+        <p class="text-sm mt-1 max-w-sm">Ask about load progression, exercise technique, or anything related to your workout plan.</p>
 
         <div class="flex flex-wrap gap-2 mt-6 justify-center">
-          <button type="button" class="suggestion-chip btn btn-sm btn-outline btn-primary rounded-full">Posso aumentar carga no supino?</button>
-          <button type="button" class="suggestion-chip btn btn-sm btn-outline btn-secondary rounded-full">Qual a melhor série para hipertrofia?</button>
-          <button type="button" class="suggestion-chip btn btn-sm btn-outline btn-accent rounded-full">Devo mudar de treino?</button>
+          <button type="button" class="suggestion-chip btn btn-sm btn-outline btn-primary rounded-full">Can I increase my bench press load?</button>
+          <button type="button" class="suggestion-chip btn btn-sm btn-outline btn-secondary rounded-full">What rep range is best for hypertrophy?</button>
+          <button type="button" class="suggestion-chip btn btn-sm btn-outline btn-accent rounded-full">Should I change workouts now?</button>
         </div>
       </div>
     {% endfor %}
@@ -53,11 +53,11 @@
         id="chat-input"
         class="input w-full"
         name="question"
-        placeholder="Digite sua pergunta..."
+        placeholder="Type your question..."
         required
         autocomplete="off"
       >
-      <button class="btn btn-primary btn-square" type="submit" title="Enviar">
+      <button class="btn btn-primary btn-square" type="submit" title="Send">
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 0l-7 7m7-7l7 7"/></svg>
       </button>
     </form>

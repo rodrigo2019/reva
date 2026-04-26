@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% load schedule_tags %}
+{% block title %}{% if instance %}Edit Class{% else %}New Class{% endif %} — REVA{% endblock %}
+{% block screen_id %}schedule-form{% endblock %}
+{% block assistant_screen_name %}{% if instance %}Edit Class{% else %}New Class{% endif %}{% endblock %}
+{% block nav_schedule %}active{% endblock %}
+
+{% block extra_head %}
+<style>
+.sel-btn {
+  cursor: pointer; user-select: none;
+  padding: .35rem .75rem; border-radius: .5rem; font-size: .85rem; font-weight: 600;
+  border: 1px solid oklch(.3 .01 260); background: transparent; color: inherit;
+  transition: background .12s, border-color .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.sel-btn:hover  { background: oklch(.25 .02 260); }
+.sel-btn.active { background: oklch(.55 .2 260); border-color: oklch(.55 .2 260); color: #fff; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+
+  <!-- Header -->
+  <div class="mb-5 flex items-center gap-3">
+    <a href="{% url 'schedule' %}" class="btn btn-ghost btn-sm btn-circle">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+    <div>
+      <h1 class="text-xl sm:text-2xl font-extrabold">
+        {% if instance %}Edit Class{% else %}New Class{% endif %}
+      </h1>
+      <p class="text-xs sm:text-sm opacity-50">
+        {% if instance %}Update class details.{% else %}Schedule a class for a student.{% endif %}
+      </p>
+    </div>
+  </div>
+
+  <form method="post" class="space-y-4" id="class-form">
+    {% csrf_token %}
+
+    <!-- ── Card: Aluno e horário ──────────────────────── -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-4 sm:p-5 space-y-4">
+      <p class="text-xs font-bold uppercase tracking-widest opacity-40">Student and time</p>
+
+      <!-- Aluno -->
+      <div class="form-control">
+        <label class="label py-1"><span class="label-text font-semibold">Student <span class="text-error">*</span></span></label>
+        <select name="athlete" id="id_athlete"
+                class="select select-bordered w-full {% if errors.athlete %}select-error{% endif %}" required>
+          <option value="">Select a student...</option>
+          {% for a in athletes %}
+          <option value="{{ a.pk }}"
+            {% if instance and instance.athlete_id == a.pk %}selected
+            {% elif pre_athlete == a.pk|stringformat:"s" %}selected
+            {% elif form_data.athlete == a.pk|stringformat:"s" %}selected{% endif %}>
+            {{ a.user.get_full_name|default:a.user.username }}
+          </option>
+          {% endfor %}
+        </select>
+        {% if errors.athlete %}
+        <label class="label py-0.5"><span class="label-text-alt text-error text-xs">{{ errors.athlete }}</span></label>
+        {% endif %}
+      </div>
+
+      <!-- Data + Hora -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="form-control">
+          <label class="label py-1"><span class="label-text font-semibold">Date <span class="text-error">*</span></span></label>
+          <input type="date" name="scheduled_date"
+                 class="input input-bordered w-full {% if errors.scheduled_date %}input-error{% endif %}"
+                 value="{% if instance %}{{ instance.scheduled_at|date:'Y-m-d' }}{% elif pre_date %}{{ pre_date }}{% elif form_data.scheduled_date %}{{ form_data.scheduled_date }}{% endif %}"
+                 required>
+          {% if errors.scheduled_date %}
+          <label class="label py-0.5"><span class="label-text-alt text-error text-xs">{{ errors.scheduled_date }}</span></label>
+          {% endif %}
+        </div>
+        <div class="form-control">
+          <label class="label py-1"><span class="label-text font-semibold">Time <span class="text-error">*</span></span></label>
+          <input type="time" name="scheduled_time"
+                 class="input input-bordered w-full"
+                 value="{% if instance %}{{ instance.scheduled_at|date:'H:i' }}{% elif pre_hour %}{{ pre_hour }}:00{% elif form_data.scheduled_time %}{{ form_data.scheduled_time }}{% else %}07:00{% endif %}"
+                 step="900" required>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Card: Detalhes ─────────────────────────────── -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-4 sm:p-5 space-y-4">
+      <p class="text-xs font-bold uppercase tracking-widest opacity-40">Details</p>
+
+      <!-- Duração -->
+      <div class="form-control">
+        <label class="label py-1"><span class="label-text font-semibold">Duration <span class="text-error">*</span></span></label>
+
+        <!-- Hidden field that actually submits -->
+        <input type="hidden" name="duration_minutes" id="dur-value"
+               value="{% if instance %}{{ instance.duration_minutes }}{% elif form_data.duration_minutes %}{{ form_data.duration_minutes }}{% else %}60{% endif %}">
+
+        <!-- Preset buttons -->
+        <div class="flex flex-wrap gap-1.5 mb-2" id="dur-presets">
+          {% for dur in "30,45,60,90,120"|split:"," %}
+          <button type="button" class="sel-btn" data-dur="{{ dur }}">{{ dur }}min</button>
+          {% endfor %}
+        </div>
+
+        <!-- Custom input -->
+        <div class="flex items-center gap-2">
+          <span class="text-sm opacity-50">Other:</span>
+          <input type="number" id="dur-custom" class="input input-bordered input-sm w-24"
+                 min="10" max="480" step="5" placeholder="min"
+                 value="{% if instance and instance.duration_minutes not in '30,45,60,90,120'|split:',' %}{{ instance.duration_minutes }}{% endif %}">
+          <span class="text-sm opacity-50">min</span>
+        </div>
+        {% if errors.duration_minutes %}
+        <label class="label py-0.5"><span class="label-text-alt text-error text-xs">{{ errors.duration_minutes }}</span></label>
+        {% endif %}
+      </div>
+
+      <!-- Workout plan -->
+      <div class="form-control">
+        <label class="label py-1">
+          <span class="label-text font-semibold">Workout plan</span>
+          <span class="label-text-alt opacity-40">optional</span>
+        </label>
+        <select name="workout_plan" id="id_workout_plan" class="select select-bordered w-full {% if errors.workout_plan %}select-error{% endif %}">
+          <option value="">— no link —</option>
+          {% for wp in workout_plans %}
+          <option value="{{ wp.pk }}" data-athlete="{{ wp.athlete_id }}"
+            {% if instance and instance.workout_plan_id == wp.pk %}selected
+            {% elif form_data.workout_plan == wp.pk|stringformat:"s" %}selected{% endif %}>
+            {{ wp.athlete.user.get_full_name|default:wp.athlete.user.username }} — {{ wp.name }}
+          </option>
+          {% endfor %}
+        </select>
+        {% if errors.workout_plan %}
+        <label class="label py-0.5"><span class="label-text-alt text-error text-xs">{{ errors.workout_plan }}</span></label>
+        {% endif %}
+      </div>
+
+      <!-- Status -->
+      <div class="form-control">
+        <label class="label py-1"><span class="label-text font-semibold">Status</span></label>
+
+        <input type="hidden" name="status" id="status-value"
+               value="{% if instance %}{{ instance.status }}{% elif form_data.status %}{{ form_data.status }}{% else %}scheduled{% endif %}">
+
+        <div class="flex flex-wrap gap-1.5" id="status-presets">
+          {% for value, label in statuses %}
+          <button type="button" class="sel-btn" data-status="{{ value }}">{{ label }}</button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="form-control">
+        <label class="label py-1">
+          <span class="label-text font-semibold">Notes</span>
+          <span class="label-text-alt opacity-40">optional</span>
+        </label>
+        <textarea name="notes" class="textarea textarea-bordered" rows="2"
+                  placeholder="Example: knee pain, focus on upper body...">{% if instance %}{{ instance.notes }}{% elif form_data.notes %}{{ form_data.notes }}{% endif %}</textarea>
+      </div>
+    </div>
+
+    <!-- ── Actions ────────────────────────────────────── -->
+    <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+      <button type="submit" class="btn btn-primary sm:flex-1 order-1">
+        {% if instance %}Save changes{% else %}Schedule class{% endif %}
+      </button>
+      {% if instance %}
+      <a href="{% url 'class-delete' instance.pk %}" class="btn btn-error btn-outline order-3 sm:order-2">
+        Delete
+      </a>
+      {% endif %}
+      <a href="{% url 'schedule' %}" class="btn btn-ghost order-2 sm:order-3">Cancel</a>
+    </div>
+
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// ── Duration selector ────────────────────────────────────
+const durValue   = document.getElementById('dur-value');
+const durPresets = document.querySelectorAll('#dur-presets .sel-btn');
+const durCustom  = document.getElementById('dur-custom');
+
+function setDuration(val) {
+  durValue.value = val;
+  const intVal = parseInt(val);
+  durPresets.forEach(btn => btn.classList.toggle('active', parseInt(btn.dataset.dur) === intVal));
+}
+
+durPresets.forEach(btn => btn.addEventListener('click', () => {
+  durCustom.value = '';
+  setDuration(btn.dataset.dur);
+}));
+
+durCustom.addEventListener('input', () => {
+  const v = parseInt(durCustom.value);
+  if (v > 0) {
+    durPresets.forEach(btn => btn.classList.remove('active'));
+    durValue.value = v;
+  }
+});
+
+// Init duration on page load
+setDuration(durValue.value);
+
+// If custom value was set (non-preset), show it in custom field
+const initDur = parseInt(durValue.value);
+const presets = [30, 45, 60, 90, 120];
+if (!presets.includes(initDur) && initDur > 0) {
+  durCustom.value = initDur;
+  durPresets.forEach(btn => btn.classList.remove('active'));
+}
+
+// ── Status selector ──────────────────────────────────────
+const statusValue   = document.getElementById('status-value');
+const statusBtns    = document.querySelectorAll('#status-presets .sel-btn');
+
+function setStatus(val) {
+  statusValue.value = val;
+  statusBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.status === val));
+}
+
+statusBtns.forEach(btn => btn.addEventListener('click', () => setStatus(btn.dataset.status)));
+setStatus(statusValue.value);
+
+// ── Workout plan filter by athlete ───────────────────────
+const athleteSelect = document.getElementById('id_athlete');
+const planSelect    = document.getElementById('id_workout_plan');
+const planOptions   = Array.from(planSelect.querySelectorAll('option[data-athlete]'));
+
+function filterPlans() {
+  const id = athleteSelect.value;
+  planOptions.forEach(opt => { opt.hidden = id && opt.dataset.athlete !== id; });
+  const sel = planSelect.querySelector('option:checked');
+  if (sel && sel.dataset.athlete && sel.dataset.athlete !== id) planSelect.value = '';
+}
+
+athleteSelect.addEventListener('change', filterPlans);
+filterPlans();
+</script>
+{% endblock %}

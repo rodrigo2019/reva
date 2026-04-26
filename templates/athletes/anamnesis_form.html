@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% block screen_id %}student-anamnesis{% endblock %}
+{% block assistant_screen_name %}{% if editing %}Edit Health Profile{% else %}New Health Profile{% endif %}: {{ student.user.get_full_name }}{% endblock %}
+{% block title %}Health Profile — {{ student.user.get_full_name }} — REVA{% endblock %}
+{% block nav_students %}active{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+  <a href="{% url 'student-profile' student.pk %}" class="text-sm opacity-50 hover:opacity-80 transition inline-flex items-center gap-1 mb-2">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    Back to profile
+  </a>
+  <h1 class="text-2xl sm:text-3xl font-extrabold">{% if editing %}Edit Health Profile{% else %}Health Profile{% endif %}</h1>
+  <p class="opacity-50 mt-1 text-sm sm:text-base">{{ student.user.get_full_name }} — record health history, goals, and lifestyle details.</p>
+</div>
+
+<div class="max-w-4xl">
+  {% if form.errors %}
+    <div role="alert" class="alert alert-error mb-4">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <span>Fix the errors below to continue.</span>
+    </div>
+  {% endif %}
+
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+
+    <!-- Dados Pessoais -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <h2 class="font-bold text-lg mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        Personal Details
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Date of birth</legend>
+          {{ form.date_of_birth }}
+          {% if form.date_of_birth.errors %}<p class="text-error text-xs mt-1">{{ form.date_of_birth.errors.0 }}</p>{% endif %}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Gender</legend>
+          {{ form.gender }}
+          {% if form.gender.errors %}<p class="text-error text-xs mt-1">{{ form.gender.errors.0 }}</p>{% endif %}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Phone</legend>
+          {{ form.phone }}
+          {% if form.phone.errors %}<p class="text-error text-xs mt-1">{{ form.phone.errors.0 }}</p>{% endif %}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Occupation</legend>
+          {{ form.occupation }}
+          {% if form.occupation.errors %}<p class="text-error text-xs mt-1">{{ form.occupation.errors.0 }}</p>{% endif %}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Emergency contact</legend>
+          {{ form.emergency_contact_name }}
+          {% if form.emergency_contact_name.errors %}<p class="text-error text-xs mt-1">{{ form.emergency_contact_name.errors.0 }}</p>{% endif %}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Emergency phone</legend>
+          {{ form.emergency_contact_phone }}
+          {% if form.emergency_contact_phone.errors %}<p class="text-error text-xs mt-1">{{ form.emergency_contact_phone.errors.0 }}</p>{% endif %}
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- Treino e Objetivos -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <h2 class="font-bold text-lg mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        Training and Goals
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Experience level</legend>
+          {{ form.training_experience }}
+          {% if form.training_experience.errors %}<p class="text-error text-xs mt-1">{{ form.training_experience.errors.0 }}</p>{% endif %}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Weekly training frequency</legend>
+          {{ form.training_frequency }}
+          {% if form.training_frequency.errors %}<p class="text-error text-xs mt-1">{{ form.training_frequency.errors.0 }}</p>{% endif %}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Primary goal</legend>
+          {{ form.primary_goal }}
+          {% if form.primary_goal.errors %}<p class="text-error text-xs mt-1">{{ form.primary_goal.errors.0 }}</p>{% endif %}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Secondary goal</legend>
+          {{ form.secondary_goal }}
+          {% if form.secondary_goal.errors %}<p class="text-error text-xs mt-1">{{ form.secondary_goal.errors.0 }}</p>{% endif %}
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- Saúde e Histórico Médico -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <h2 class="font-bold text-lg mb-1 flex items-center gap-2">
+        <svg class="w-5 h-5 text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+        Health and Medical History
+      </h2>
+      <p class="text-xs opacity-50 mb-4">Capture the safety-critical information that matters for coaching decisions.</p>
+
+      <div class="space-y-4">
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Medical conditions / diagnoses</legend>
+          {{ form.medical_conditions }}
+          {% if form.medical_conditions.errors %}<p class="text-error text-xs mt-1">{{ form.medical_conditions.errors.0 }}</p>{% endif %}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Current medications</legend>
+          {{ form.medications }}
+          {% if form.medications.errors %}<p class="text-error text-xs mt-1">{{ form.medications.errors.0 }}</p>{% endif %}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Injury history</legend>
+          {{ form.injuries_history }}
+          {% if form.injuries_history.errors %}<p class="text-error text-xs mt-1">{{ form.injuries_history.errors.0 }}</p>{% endif %}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Past surgeries</legend>
+          {{ form.surgeries }}
+          {% if form.surgeries.errors %}<p class="text-error text-xs mt-1">{{ form.surgeries.errors.0 }}</p>{% endif %}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Allergies</legend>
+          {{ form.allergies }}
+          {% if form.allergies.errors %}<p class="text-error text-xs mt-1">{{ form.allergies.errors.0 }}</p>{% endif %}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Pain / discomfort complaints</legend>
+          {{ form.pain_complaints }}
+          {% if form.pain_complaints.errors %}<p class="text-error text-xs mt-1">{{ form.pain_complaints.errors.0 }}</p>{% endif %}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Physical limitations</legend>
+          {{ form.physical_limitations }}
+          {% if form.physical_limitations.errors %}<p class="text-error text-xs mt-1">{{ form.physical_limitations.errors.0 }}</p>{% endif %}
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- Estilo de Vida -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <h2 class="font-bold text-lg mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-info" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        Lifestyle
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Sleep hours per night</legend>
+          {{ form.sleep_hours }}
+          {% if form.sleep_hours.errors %}<p class="text-error text-xs mt-1">{{ form.sleep_hours.errors.0 }}</p>{% endif %}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Stress level</legend>
+          {{ form.stress_level }}
+          {% if form.stress_level.errors %}<p class="text-error text-xs mt-1">{{ form.stress_level.errors.0 }}</p>{% endif %}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Alcohol consumption</legend>
+          {{ form.alcohol_consumption }}
+          {% if form.alcohol_consumption.errors %}<p class="text-error text-xs mt-1">{{ form.alcohol_consumption.errors.0 }}</p>{% endif %}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Smoker</legend>
+          <label class="flex items-center gap-3 mt-2 cursor-pointer">
+            {{ form.smoker }}
+            <span class="text-sm">Yes, this student smokes</span>
+          </label>
+        </fieldset>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Dietary restrictions</legend>
+          {{ form.dietary_restrictions }}
+          {% if form.dietary_restrictions.errors %}<p class="text-error text-xs mt-1">{{ form.dietary_restrictions.errors.0 }}</p>{% endif %}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Supplements in use</legend>
+          {{ form.supplements }}
+          {% if form.supplements.errors %}<p class="text-error text-xs mt-1">{{ form.supplements.errors.0 }}</p>{% endif %}
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- Texto Livre -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <h2 class="font-bold text-lg mb-1 flex items-center gap-2">
+        <svg class="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        General Notes
+      </h2>
+      <p class="text-xs opacity-50 mb-4">Add any extra context that should shape programming, coaching, or recovery guidance.</p>
+      <fieldset class="fieldset">
+        {{ form.additional_notes }}
+        {% if form.additional_notes.errors %}<p class="text-error text-xs mt-1">{{ form.additional_notes.errors.0 }}</p>{% endif %}
+      </fieldset>
+    </div>
+
+    <!-- Submit -->
+    <button class="btn btn-primary btn-block text-base" type="submit">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+      {% if editing %}Save Changes{% else %}Save Health Profile{% endif %}
+    </button>
+  </form>
+</div>
+{% endblock %}

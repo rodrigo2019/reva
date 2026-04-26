@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% block screen_id %}student-progress{% endblock %}
+{% block assistant_screen_name %}Student Progress{% endblock %}
+{% block title %}Progress — {{ student.user.get_full_name }} — REVA{% endblock %}
+{% block nav_students %}active{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+  <a href="{% url 'student-detail' student.pk %}" class="text-sm opacity-50 hover:opacity-80 transition inline-flex items-center gap-1 mb-2">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    Back to {{ student.user.get_full_name|default:student.user.username }}
+  </a>
+  <h1 class="text-2xl sm:text-3xl font-extrabold">Progress — {{ student.user.get_full_name|default:student.user.username }}</h1>
+  <p class="opacity-50 mt-1 text-sm sm:text-base">Load progression by workout and exercise.</p>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+  <div class="bg-base-100 rounded-xl border border-base-300 p-3 sm:p-4 text-center">
+    <p class="text-xl sm:text-2xl font-bold text-primary" id="stat-exercises">0</p>
+    <p class="text-[10px] sm:text-xs opacity-50">Exercises</p>
+  </div>
+  <div class="bg-base-100 rounded-xl border border-base-300 p-3 sm:p-4 text-center">
+    <p class="text-xl sm:text-2xl font-bold text-secondary" id="stat-records">0</p>
+    <p class="text-[10px] sm:text-xs opacity-50">Records</p>
+  </div>
+  <div class="bg-base-100 rounded-xl border border-base-300 p-3 sm:p-4 text-center">
+    <p class="text-xl sm:text-2xl font-bold text-accent" id="stat-max">—</p>
+    <p class="text-[10px] sm:text-xs opacity-50">Top load</p>
+  </div>
+  <div class="bg-base-100 rounded-xl border border-base-300 p-3 sm:p-4 text-center">
+    <p class="text-xl sm:text-2xl font-bold text-success" id="stat-growth">—</p>
+    <p class="text-[10px] sm:text-xs opacity-50">Change</p>
+  </div>
+</div>
+
+<div class="bg-base-100 rounded-2xl border border-base-300 p-4 sm:p-6 space-y-5">
+  <!-- Cascading selectors -->
+  <div class="flex flex-col sm:flex-row gap-4">
+    <fieldset class="fieldset flex-1">
+      <legend class="fieldset-legend">Workout</legend>
+      <select id="workout-select" class="select w-full">
+        <option value="" disabled selected>Select a workout</option>
+      </select>
+    </fieldset>
+    <fieldset class="fieldset flex-1">
+      <legend class="fieldset-legend">Exercise</legend>
+      <select id="exercise-select" class="select w-full" disabled>
+        <option value="" disabled selected>Select an exercise</option>
+      </select>
+    </fieldset>
+  </div>
+
+  <!-- Chart -->
+  <div class="w-full" style="min-height:240px;">
+    <canvas id="progress-chart"></canvas>
+  </div>
+
+  <!-- Empty state -->
+  <div id="empty-state" class="hidden flex flex-col items-center justify-center py-12 opacity-50">
+    <svg class="w-16 h-16 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6m6 0h6m-6 0V9a2 2 0 012-2h2a2 2 0 012 2v10m6 0v-4a2 2 0 00-2-2h-2a2 2 0 00-2 2v4"/></svg>
+    <p class="font-semibold">No load history yet</p>
+    <p class="text-sm">Update exercise loads to see progression here.</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+  const payload = {{ chart_payload|safe }};  // array of {id, exercise, workout, points}
+  const workoutSelect = document.getElementById('workout-select');
+  const exerciseSelect = document.getElementById('exercise-select');
+  const emptyState = document.getElementById('empty-state');
+
+  // Lookup map by id
+  const payloadById = {};
+  payload.forEach(item => { payloadById[item.id] = item; });
+
+  // Group by workout name (preserve insertion order)
+  const byWorkout = {};
+  payload.forEach(item => {
+    if (!byWorkout[item.workout]) byWorkout[item.workout] = [];
+    byWorkout[item.workout].push(item);
+  });
+  const workoutNames = Object.keys(byWorkout);
+
+  // Populate workout dropdown
+  workoutNames.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    workoutSelect.appendChild(opt);
+  });
+
+  // Populate exercise dropdown for a given workout
+  function populateExercises(workoutName) {
+    exerciseSelect.innerHTML = '<option value="" disabled selected>Select an exercise</option>';
+    const items = byWorkout[workoutName] || [];
+    items.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item.id;
+      opt.textContent = item.exercise;
+      exerciseSelect.appendChild(opt);
+    });
+    exerciseSelect.disabled = items.length === 0;
+    if (items.length > 0) {
+      exerciseSelect.value = items[0].id;
+      renderItem(items[0].id);
+    } else {
+      clearChart();
+    }
+  }
+
+  // Global stats
+  function updateStats() {
+    let totalRecords = 0, maxLoad = 0;
+    payload.forEach(item => {
+      totalRecords += item.points.length;
+      item.points.forEach(p => { if (p.load > maxLoad) maxLoad = p.load; });
+    });
+    document.getElementById('stat-exercises').textContent = payload.length;
+    document.getElementById('stat-records').textContent = totalRecords;
+    document.getElementById('stat-max').textContent = maxLoad > 0 ? maxLoad + ' kg' : '—';
+  }
+  updateStats();
+
+  function calcGrowth(points) {
+    if (points.length < 2) return '—';
+    const first = points[0].load, last = points[points.length - 1].load;
+    if (first === 0) return '—';
+    const pct = (((last - first) / first) * 100).toFixed(1);
+    return (pct >= 0 ? '+' : '') + pct + '%';
+  }
+
+  // Chart
+  const ctx = document.getElementById('progress-chart').getContext('2d');
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Load (kg)',
+        data: [],
+        borderColor: 'oklch(0.65 0.24 265)',
+        backgroundColor: 'oklch(0.65 0.24 265 / 0.15)',
+        borderWidth: 2.5,
+        fill: true,
+        tension: 0.35,
+        pointRadius: 5,
+        pointBackgroundColor: 'oklch(0.65 0.24 265)',
+        pointBorderWidth: 2,
+        pointBorderColor: '#1d232a'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1d232a',
+          titleColor: '#fff',
+          bodyColor: '#fff',
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: { label: (c) => c.parsed.y + ' kg' }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: false,
+          grid: { color: 'rgba(255,255,255,0.06)' },
+          ticks: { color: 'rgba(255,255,255,0.5)' }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: 'rgba(255,255,255,0.5)' }
+        }
+      }
+    }
+  });
+
+  function clearChart() {
+    chart.data.labels = [];
+    chart.data.datasets[0].data = [];
+    chart.update();
+    document.getElementById('stat-growth').textContent = '—';
+  }
+
+  function renderItem(id) {
+    const item = payloadById[id];
+    if (!item) return;
+    const points = item.points;
+    chart.data.labels = points.map(p => p.date);
+    chart.data.datasets[0].data = points.map(p => p.load);
+    chart.data.datasets[0].label = item.exercise;
+    chart.update();
+    document.getElementById('stat-growth').textContent = calcGrowth(points);
+  }
+
+  workoutSelect.addEventListener('change', (e) => populateExercises(e.target.value));
+  exerciseSelect.addEventListener('change', (e) => renderItem(Number(e.target.value)));
+
+  // Init
+  if (payload.length === 0) {
+    emptyState.classList.remove('hidden');
+    document.getElementById('progress-chart').style.display = 'none';
+  } else {
+    workoutSelect.value = workoutNames[0];
+    populateExercises(workoutNames[0]);
+  }
+</script>
+{% endblock %}

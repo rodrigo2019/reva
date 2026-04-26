@@ -27,9 +27,11 @@ def _build_progress_context(athlete):
 
 def generate_contextual_reply(athlete, question):
     progress_context = _build_progress_context(athlete)
+    relationship_context = "Aluno acompanhado por professor." if athlete.has_active_trainer else "Aluno em modo independente, sem professor vinculado."
     system_prompt = (
-        "Você é o assistente do treinador REVA. Responda em português brasileiro, "
+        "Você é o assistente pessoal de treino da REVA. Responda em português brasileiro, "
         "de forma objetiva, segura e motivadora, sem prescrever condutas médicas."
+        f"\n\nStatus do aluno: {relationship_context}"
         f"\n\nContexto recente do aluno:\n{progress_context}"
     )
 
@@ -46,5 +48,5 @@ def generate_contextual_reply(athlete, question):
         )
         return (
             "Pelo histórico recente, sua evolução parece consistente. "
-            "Mantenha a técnica correta e alinhe qualquer aumento de carga com seu treinador."
+            "Mantenha a tecnica correta e trate dor, lesao ou sintomas com um profissional qualificado."
         )

@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+{% block screen_id %}student-assessment{% endblock %}
+{% block assistant_screen_name %}{% if editing %}Edit Assessment{% else %}New Assessment{% endif %}: {{ student.user.get_full_name }}{% endblock %}
+{% block title %}{% if editing %}Edit{% else %}New{% endif %} Assessment — {{ student.user.get_full_name }} — REVA{% endblock %}
+{% block nav_students %}active{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+  <a href="{% url 'student-profile' student.pk %}?tab=assessments" class="text-sm opacity-50 hover:opacity-80 transition inline-flex items-center gap-1 mb-2">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    Back to profile
+  </a>
+  <h1 class="text-2xl sm:text-3xl font-extrabold">{% if editing %}Edit Assessment{% else %}New Assessment{% endif %}</h1>
+  <p class="opacity-50 mt-1 text-sm sm:text-base">{{ student.user.get_full_name }} — log body measurements and key composition data.</p>
+</div>
+
+<div class="max-w-4xl">
+  {% if form.errors %}
+    <div role="alert" class="alert alert-error mb-4">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <span>Fix the errors below to continue.</span>
+    </div>
+  {% endif %}
+
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+
+    <!-- Data da Avaliação -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <h2 class="font-bold text-lg mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        Assessment Date
+      </h2>
+      <fieldset class="fieldset max-w-xs">
+        <legend class="fieldset-legend">Data</legend>
+        {{ form.assessed_at }}
+        {% if form.assessed_at.errors %}<p class="text-error text-xs mt-1">{{ form.assessed_at.errors.0 }}</p>{% endif %}
+      </fieldset>
+    </div>
+
+    <!-- Dados Principais -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <h2 class="font-bold text-lg mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        Core Metrics
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Weight (kg)</legend>
+          {{ form.weight_kg }}
+          {% if form.weight_kg.errors %}<p class="text-error text-xs mt-1">{{ form.weight_kg.errors.0 }}</p>{% endif %}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Height (cm)</legend>
+          {{ form.height_cm }}
+          {% if form.height_cm.errors %}<p class="text-error text-xs mt-1">{{ form.height_cm.errors.0 }}</p>{% endif %}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Body fat (%)</legend>
+          {{ form.body_fat_percentage }}
+          {% if form.body_fat_percentage.errors %}<p class="text-error text-xs mt-1">{{ form.body_fat_percentage.errors.0 }}</p>{% endif %}
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- Circunferências: Tronco -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <h2 class="font-bold text-lg mb-1 flex items-center gap-2">
+        <svg class="w-5 h-5 text-info" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+        Trunk Circumferences
+      </h2>
+      <p class="text-xs opacity-50 mb-4">All values are in centimeters. Fill only the measurements you collected.</p>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Neck</legend>
+          {{ form.neck_cm }}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Shoulders</legend>
+          {{ form.shoulders_cm }}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Chest</legend>
+          {{ form.chest_cm }}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Waist</legend>
+          {{ form.waist_cm }}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Abdomen</legend>
+          {{ form.abdomen_cm }}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Hips</legend>
+          {{ form.hips_cm }}
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- Circunferências: Membros -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <h2 class="font-bold text-lg mb-1 flex items-center gap-2">
+        <svg class="w-5 h-5 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"/></svg>
+        Limb Circumferences
+      </h2>
+      <p class="text-xs opacity-50 mb-4">Arms, forearms, thighs, and calves.</p>
+
+      <h3 class="font-semibold text-sm opacity-60 mb-2">Arms and Forearms</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Right arm</legend>
+          {{ form.right_arm_cm }}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Left arm</legend>
+          {{ form.left_arm_cm }}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Right forearm</legend>
+          {{ form.right_forearm_cm }}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Left forearm</legend>
+          {{ form.left_forearm_cm }}
+        </fieldset>
+      </div>
+
+      <h3 class="font-semibold text-sm opacity-60 mb-2">Thighs and Calves</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Right thigh</legend>
+          {{ form.right_thigh_cm }}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Left thigh</legend>
+          {{ form.left_thigh_cm }}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Right calf</legend>
+          {{ form.right_calf_cm }}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Left calf</legend>
+          {{ form.left_calf_cm }}
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- Dobras Cutâneas -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <div class="flex items-center justify-between mb-1">
+        <h2 class="font-bold text-lg flex items-center gap-2">
+          <svg class="w-5 h-5 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+          Skinfolds
+        </h2>
+        <span class="badge badge-ghost badge-sm">Opcional</span>
+      </div>
+      <p class="text-xs opacity-50 mb-4">7-site Jackson & Pollock protocol. Values in millimeters.</p>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Triceps</legend>
+          {{ form.triceps_skinfold_mm }}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Subescapular</legend>
+          {{ form.subscapular_skinfold_mm }}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Suprailiac</legend>
+          {{ form.suprailiac_skinfold_mm }}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Abdominal</legend>
+          {{ form.abdominal_skinfold_mm }}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Coxa</legend>
+          {{ form.thigh_skinfold_mm }}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Chest</legend>
+          {{ form.chest_skinfold_mm }}
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Midaxillary</legend>
+          {{ form.midaxillary_skinfold_mm }}
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- Observações -->
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Assessment notes (optional)</legend>
+        {{ form.notes }}
+      </fieldset>
+    </div>
+
+    <!-- Submit -->
+    <button class="btn btn-primary btn-block text-base" type="submit">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+      {% if editing %}Save Changes{% else %}Record Assessment{% endif %}
+    </button>
+  </form>
+</div>
+{% endblock %}

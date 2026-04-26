@@ -12,7 +12,8 @@ from core.mixins import TrainerRequiredMixin
 from workouts.models import ExerciseProgressLog, ExercisePrescription, TrainingPlan, WorkoutPlan
 
 from .forms import AnamnesisForm, PhysicalAssessmentForm, StudentRegistrationForm, StudentUpdateForm
-from .models import Anamnesis, Athlete, PhysicalAssessment
+from .models import Anamnesis, Athlete, PhysicalAssessment, StudentRelationshipStatus
+from .services import AthleteService
 
 
 class StudentListView(LoginRequiredMixin, TrainerRequiredMixin, ListView):
@@ -23,7 +24,10 @@ class StudentListView(LoginRequiredMixin, TrainerRequiredMixin, ListView):
 
     def get_queryset(self):
         qs = (
-            Athlete.objects.filter(trainer=self.request.user)
+            Athlete.objects.filter(
+                trainer=self.request.user,
+                relationship_status=StudentRelationshipStatus.ACTIVE,
+            )
             .select_related("user")
             .prefetch_related("workout_plans")
         )
@@ -56,7 +60,7 @@ class StudentCreateView(LoginRequiredMixin, TrainerRequiredMixin, View):
         form.trainer = request.user
         if form.is_valid():
             athlete = form.save(trainer=request.user)
-            messages.success(request, f"Aluno {athlete} vinculado com sucesso!")
+            messages.success(request, f"Student {athlete} linked successfully.")
             return redirect("student-list")
         return render(request, self.template_name, {"form": form})
 
@@ -67,7 +71,10 @@ class StudentDetailView(LoginRequiredMixin, TrainerRequiredMixin, DetailView):
     context_object_name = "student"
 
     def get_queryset(self):
-        return Athlete.objects.filter(trainer=self.request.user).select_related("user")
+        return Athlete.objects.filter(
+            trainer=self.request.user,
+            relationship_status=StudentRelationshipStatus.ACTIVE,
+        ).select_related("user")
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -86,6 +93,7 @@ class StudentDetailView(LoginRequiredMixin, TrainerRequiredMixin, DetailView):
         )
         ctx["workouts"] = workouts
         ctx["active_workouts"] = sum(1 for w in workouts if w.is_active)
+        ctx["exercise_count"] = sum(w.exercises.count() for w in workouts)
         ctx["standalone_workouts"] = [w for w in workouts if w.plan_id is None]
 
         # Training plans with nested workouts
@@ -127,7 +135,7 @@ class StudentDetailView(LoginRequiredMixin, TrainerRequiredMixin, DetailView):
             if exercises_list:
                 chart_data[workout.name] = exercises_list
         ctx["chart_data"] = json.dumps(chart_data, ensure_ascii=False)
-        ctx["create_workout_url"] = reverse("workout-create") + f"?aluno={student.pk}"
+        ctx["create_workout_url"] = reverse("workout-create") + f"?student={student.pk}"
         return ctx
 
 
@@ -135,7 +143,12 @@ class StudentUpdateView(LoginRequiredMixin, TrainerRequiredMixin, View):
     template_name = "athletes/student_edit.html"
 
     def _get_athlete(self, request, pk):
-        return get_object_or_404(Athlete, pk=pk, trainer=request.user)
+        return get_object_or_404(
+            Athlete,
+            pk=pk,
+            trainer=request.user,
+            relationship_status=StudentRelationshipStatus.ACTIVE,
+        )
 
     def get(self, request, pk):
         athlete = self._get_athlete(request, pk)
@@ -147,7 +160,7 @@ class StudentUpdateView(LoginRequiredMixin, TrainerRequiredMixin, View):
         form = StudentUpdateForm(request.POST, athlete=athlete)
         if form.is_valid():
             form.save()
-            messages.success(request, "Dados do aluno atualizados com sucesso!")
+            messages.success(request, "Student details updated successfully.")
             return redirect("student-detail", pk=athlete.pk)
         return render(request, self.template_name, {"form": form, "student": athlete})
 
@@ -156,7 +169,12 @@ class StudentDeleteView(LoginRequiredMixin, TrainerRequiredMixin, View):
     template_name = "athletes/student_confirm_delete.html"
 
     def _get_athlete(self, request, pk):
-        return get_object_or_404(Athlete, pk=pk, trainer=request.user)
+        return get_object_or_404(
+            Athlete,
+            pk=pk,
+            trainer=request.user,
+            relationship_status=StudentRelationshipStatus.ACTIVE,
+        )
 
     def get(self, request, pk):
         athlete = self._get_athlete(request, pk)
@@ -165,8 +183,8 @@ class StudentDeleteView(LoginRequiredMixin, TrainerRequiredMixin, View):
     def post(self, request, pk):
         athlete = self._get_athlete(request, pk)
         student_name = str(athlete)
-        athlete.delete()
-        messages.success(request, f"Aluno {student_name} desvinculado com sucesso. A conta do usuário foi preservada.")
+        AthleteService.end_relationship(request.user, athlete)
+        messages.success(request, f"Student {student_name} unlinked successfully. The independent student profile was preserved.")
         return redirect("student-list")
 
 
@@ -175,7 +193,12 @@ class TrainerStudentProgressView(LoginRequiredMixin, TrainerRequiredMixin, Templ
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        student = get_object_or_404(Athlete, pk=self.kwargs["pk"], trainer=self.request.user)
+        student = get_object_or_404(
+            Athlete,
+            pk=self.kwargs["pk"],
+            trainer=self.request.user,
+            relationship_status=StudentRelationshipStatus.ACTIVE,
+        )
         context["student"] = student
 
         exercises = (
@@ -211,13 +234,18 @@ class TrainerStudentProgressView(LoginRequiredMixin, TrainerRequiredMixin, Templ
 
 class SetStudentPasswordView(LoginRequiredMixin, TrainerRequiredMixin, View):
     def _get_athlete(self, request, pk):
-        return get_object_or_404(Athlete, pk=pk, trainer=request.user)
+        return get_object_or_404(
+            Athlete,
+            pk=pk,
+            trainer=request.user,
+            relationship_status=StudentRelationshipStatus.ACTIVE,
+        )
 
     def get(self, request, pk):
         athlete = self._get_athlete(request, pk)
         messages.info(
             request,
-            f"O acesso de {athlete} é definido pelo próprio aluno no cadastro da plataforma.",
+            f"Access for {athlete} is set by the student during platform sign-up.",
         )
         return redirect("student-detail", pk=athlete.pk)
 
@@ -225,7 +253,7 @@ class SetStudentPasswordView(LoginRequiredMixin, TrainerRequiredMixin, View):
         athlete = self._get_athlete(request, pk)
         messages.info(
             request,
-            f"O acesso de {athlete} é definido pelo próprio aluno no cadastro da plataforma.",
+            f"Access for {athlete} is set by the student during platform sign-up.",
         )
         return redirect("student-detail", pk=athlete.pk)
 
@@ -240,7 +268,12 @@ class StudentProfileView(LoginRequiredMixin, TrainerRequiredMixin, View):
     template_name = "athletes/student_profile.html"
 
     def get(self, request, pk):
-        student = get_object_or_404(Athlete, pk=pk, trainer=request.user)
+        student = get_object_or_404(
+            Athlete,
+            pk=pk,
+            trainer=request.user,
+            relationship_status=StudentRelationshipStatus.ACTIVE,
+        )
         tab = request.GET.get("tab", "anamnesis")
 
         anamnesis = student.latest_anamnesis
@@ -295,7 +328,12 @@ class AnamnesisCreateUpdateView(LoginRequiredMixin, TrainerRequiredMixin, View):
     template_name = "athletes/anamnesis_form.html"
 
     def _get_student(self, request, pk):
-        return get_object_or_404(Athlete, pk=pk, trainer=request.user)
+        return get_object_or_404(
+            Athlete,
+            pk=pk,
+            trainer=request.user,
+            relationship_status=StudentRelationshipStatus.ACTIVE,
+        )
 
     def get(self, request, pk):
         student = self._get_student(request, pk)
@@ -315,7 +353,7 @@ class AnamnesisCreateUpdateView(LoginRequiredMixin, TrainerRequiredMixin, View):
             obj = form.save(commit=False)
             obj.athlete = student
             obj.save()
-            messages.success(request, "Anamnese salva com sucesso!")
+            messages.success(request, "Health profile saved successfully.")
             return redirect("student-profile", pk=student.pk)
         return render(request, self.template_name, {
             "form": form,
@@ -330,7 +368,12 @@ class PhysicalAssessmentCreateView(LoginRequiredMixin, TrainerRequiredMixin, Vie
     template_name = "athletes/assessment_form.html"
 
     def _get_student(self, request, pk):
-        return get_object_or_404(Athlete, pk=pk, trainer=request.user)
+        return get_object_or_404(
+            Athlete,
+            pk=pk,
+            trainer=request.user,
+            relationship_status=StudentRelationshipStatus.ACTIVE,
+        )
 
     def get(self, request, pk):
         student = self._get_student(request, pk)
@@ -349,7 +392,7 @@ class PhysicalAssessmentCreateView(LoginRequiredMixin, TrainerRequiredMixin, Vie
             obj = form.save(commit=False)
             obj.athlete = student
             obj.save()
-            messages.success(request, "Avaliação física registrada com sucesso!")
+            messages.success(request, "Assessment recorded successfully.")
             return redirect("student-profile", pk=student.pk)
         return render(request, self.template_name, {"form": form, "student": student})
 
@@ -360,7 +403,12 @@ class PhysicalAssessmentUpdateView(LoginRequiredMixin, TrainerRequiredMixin, Vie
     template_name = "athletes/assessment_form.html"
 
     def _get_objects(self, request, pk, assessment_pk):
-        student = get_object_or_404(Athlete, pk=pk, trainer=request.user)
+        student = get_object_or_404(
+            Athlete,
+            pk=pk,
+            trainer=request.user,
+            relationship_status=StudentRelationshipStatus.ACTIVE,
+        )
         assessment = get_object_or_404(PhysicalAssessment, pk=assessment_pk, athlete=student)
         return student, assessment
 
@@ -383,7 +431,12 @@ class PhysicalAssessmentDeleteView(LoginRequiredMixin, TrainerRequiredMixin, Vie
     """Exclui uma avaliação física."""
 
     def post(self, request, pk, assessment_pk):
-        student = get_object_or_404(Athlete, pk=pk, trainer=request.user)
+        student = get_object_or_404(
+            Athlete,
+            pk=pk,
+            trainer=request.user,
+            relationship_status=StudentRelationshipStatus.ACTIVE,
+        )
         assessment = get_object_or_404(PhysicalAssessment, pk=assessment_pk, athlete=student)
         assessment.delete()
         messages.success(request, "Avaliação excluída com sucesso.")

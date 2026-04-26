@@ -2,18 +2,48 @@ import json
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db import transaction
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
-from athletes.models import Athlete
-from core.mixins import TrainerRequiredMixin
+from athletes.models import Athlete, StudentRelationshipStatus
+from core.mixins import LinkedStudentRequiredMixin, TrainerRequiredMixin
 
-from .forms import ExerciseAlternativeForm, ExerciseForm, ExerciseUpdateForm, LoadUpdateForm, TrainingPlanForm, WorkoutPlanForm
-from .models import ExerciseAlternative, ExercisePrescription, ExerciseProgressLog, LoadUpdate, TrainingPlan, WorkoutPlan
+from .forms import ExerciseAlternativeForm, ExerciseForm, ExerciseUpdateForm, LoadUpdateForm, TrainingPlanForm, WorkoutPlanForm, WorkoutSetLogForm
+from .models import ExerciseAlternative, ExercisePrescription, TrainingPlan, WorkoutPlan, WorkoutSession
+from .services import WorkoutExecutionService, WorkoutService
+
+
+def _selected_student_pk(request):
+	return request.GET.get("student") or request.GET.get("aluno")
+
+
+def _selected_status(request):
+	status = (request.GET.get("status") or "").strip().lower()
+	if status in {"active", "ativo"}:
+		return "active"
+	if status in {"inactive", "inativo"}:
+		return "inactive"
+	return ""
+
+
+def _trainer_plan_queryset(user):
+	return TrainingPlan.objects.filter(
+		created_by=user,
+		athlete__trainer=user,
+		athlete__relationship_status=StudentRelationshipStatus.ACTIVE,
+	)
+
+
+def _trainer_workout_queryset(user):
+	return WorkoutPlan.objects.filter(
+		created_by=user,
+		athlete__trainer=user,
+		athlete__relationship_status=StudentRelationshipStatus.ACTIVE,
+	)
 
 
 # ──────────────────────────────────────────────
@@ -27,15 +57,15 @@ class TrainingPlanListView(LoginRequiredMixin, TrainerRequiredMixin, ListView):
 	paginate_by = 12
 
 	def get_queryset(self):
-		qs = TrainingPlan.objects.filter(created_by=self.request.user).select_related("athlete__user").prefetch_related("workouts").order_by("-updated_at")
-		athlete_pk = self.request.GET.get("aluno")
-		status = self.request.GET.get("status")
+		qs = _trainer_plan_queryset(self.request.user).select_related("athlete__user").prefetch_related("workouts").order_by("-updated_at")
+		athlete_pk = _selected_student_pk(self.request)
+		status = _selected_status(self.request)
 		q = self.request.GET.get("q", "").strip()
 		if athlete_pk:
 			qs = qs.filter(athlete__pk=athlete_pk)
-		if status == "ativo":
+		if status == "active":
 			qs = qs.filter(is_active=True)
-		elif status == "inativo":
+		elif status == "inactive":
 			qs = qs.filter(is_active=False)
 		if q:
 			qs = qs.filter(name__icontains=q)
@@ -43,9 +73,12 @@ class TrainingPlanListView(LoginRequiredMixin, TrainerRequiredMixin, ListView):
 
 	def get_context_data(self, **kwargs):
 		ctx = super().get_context_data(**kwargs)
-		ctx["athletes"] = Athlete.objects.filter(trainer=self.request.user).select_related("user")
-		ctx["selected_athlete"] = self.request.GET.get("aluno", "")
-		ctx["selected_status"] = self.request.GET.get("status", "")
+		ctx["athletes"] = Athlete.objects.filter(
+			trainer=self.request.user,
+			relationship_status=StudentRelationshipStatus.ACTIVE,
+		).select_related("user")
+		ctx["selected_athlete"] = _selected_student_pk(self.request) or ""
+		ctx["selected_status"] = _selected_status(self.request)
 		ctx["search_query"] = self.request.GET.get("q", "")
 		return ctx
 
@@ -62,19 +95,29 @@ class TrainingPlanCreateView(LoginRequiredMixin, TrainerRequiredMixin, CreateVie
 
 	def get_initial(self):
 		initial = super().get_initial()
-		athlete_pk = self.request.GET.get("aluno")
+		athlete_pk = _selected_student_pk(self.request)
 		if athlete_pk:
 			try:
-				athlete = Athlete.objects.get(pk=athlete_pk, trainer=self.request.user)
+				athlete = Athlete.objects.get(
+					pk=athlete_pk,
+					trainer=self.request.user,
+					relationship_status=StudentRelationshipStatus.ACTIVE,
+				)
 				initial["athlete"] = athlete.pk
 			except Athlete.DoesNotExist:
 				pass
 		return initial
 
 	def form_valid(self, form):
-		form.instance.created_by = self.request.user
-		messages.success(self.request, "Plano criado com sucesso.")
-		return super().form_valid(form)
+		self.object = WorkoutService.create_training_plan(
+			self.request.user,
+			form.cleaned_data["athlete"],
+			form.cleaned_data["name"],
+			objective=form.cleaned_data.get("objective", ""),
+			is_active=form.cleaned_data.get("is_active", True),
+		)
+		messages.success(self.request, "Plan created successfully.")
+		return redirect(self.get_success_url())
 
 
 class TrainingPlanDetailView(LoginRequiredMixin, TrainerRequiredMixin, DetailView):
@@ -83,7 +126,7 @@ class TrainingPlanDetailView(LoginRequiredMixin, TrainerRequiredMixin, DetailVie
 	context_object_name = "plan"
 
 	def get_queryset(self):
-		return TrainingPlan.objects.filter(created_by=self.request.user).select_related("athlete__user").prefetch_related(
+		return _trainer_plan_queryset(self.request.user).select_related("athlete__user").prefetch_related(
 			"workouts__exercises__exercise_ref",
 		)
 
@@ -101,7 +144,7 @@ class TrainingPlanUpdateView(LoginRequiredMixin, TrainerRequiredMixin, UpdateVie
 	template_name = "workouts/plan_form.html"
 
 	def get_queryset(self):
-		return TrainingPlan.objects.filter(created_by=self.request.user)
+		return _trainer_plan_queryset(self.request.user)
 
 	def get_form_kwargs(self):
 		kwargs = super().get_form_kwargs()
@@ -114,7 +157,7 @@ class TrainingPlanUpdateView(LoginRequiredMixin, TrainerRequiredMixin, UpdateVie
 		return ctx
 
 	def form_valid(self, form):
-		messages.success(self.request, "Plano atualizado com sucesso.")
+		messages.success(self.request, "Plan updated successfully.")
 		return super().form_valid(form)
 
 
@@ -124,10 +167,10 @@ class TrainingPlanDeleteView(LoginRequiredMixin, TrainerRequiredMixin, DeleteVie
 	success_url = reverse_lazy("plan-list")
 
 	def get_queryset(self):
-		return TrainingPlan.objects.filter(created_by=self.request.user)
+		return _trainer_plan_queryset(self.request.user)
 
 	def form_valid(self, form):
-		messages.success(self.request, "Plano excluído com sucesso.")
+		messages.success(self.request, "Plan deleted successfully.")
 		return super().form_valid(form)
 
 
@@ -143,15 +186,15 @@ class WorkoutPlanListView(LoginRequiredMixin, TrainerRequiredMixin, ListView):
 	paginate_by = 12
 
 	def get_queryset(self):
-		qs = WorkoutPlan.objects.filter(created_by=self.request.user, is_archived=False).select_related("athlete__user", "plan").order_by("-updated_at")
-		athlete_pk = self.request.GET.get("aluno")
-		status = self.request.GET.get("status")
+		qs = _trainer_workout_queryset(self.request.user).filter(is_archived=False).select_related("athlete__user", "plan").order_by("-updated_at")
+		athlete_pk = _selected_student_pk(self.request)
+		status = _selected_status(self.request)
 		q = self.request.GET.get("q", "").strip()
 		if athlete_pk:
 			qs = qs.filter(athlete__pk=athlete_pk)
-		if status == "ativo":
+		if status == "active":
 			qs = qs.filter(is_active=True)
-		elif status == "inativo":
+		elif status == "inactive":
 			qs = qs.filter(is_active=False)
 		if q:
 			qs = qs.filter(name__icontains=q)
@@ -159,9 +202,12 @@ class WorkoutPlanListView(LoginRequiredMixin, TrainerRequiredMixin, ListView):
 
 	def get_context_data(self, **kwargs):
 		ctx = super().get_context_data(**kwargs)
-		ctx["athletes"] = Athlete.objects.filter(trainer=self.request.user).select_related("user")
-		ctx["selected_athlete"] = self.request.GET.get("aluno", "")
-		ctx["selected_status"] = self.request.GET.get("status", "")
+		ctx["athletes"] = Athlete.objects.filter(
+			trainer=self.request.user,
+			relationship_status=StudentRelationshipStatus.ACTIVE,
+		).select_related("user")
+		ctx["selected_athlete"] = _selected_student_pk(self.request) or ""
+		ctx["selected_status"] = _selected_status(self.request)
 		ctx["search_query"] = self.request.GET.get("q", "")
 		return ctx
 
@@ -172,9 +218,9 @@ class WorkoutPlanCreateView(LoginRequiredMixin, TrainerRequiredMixin, CreateView
 	template_name = "workouts/workout_form.html"
 
 	def get_plan(self):
-		plan_pk = self.request.GET.get("plano") or self.kwargs.get("plan_pk")
+		plan_pk = self.request.GET.get("plan") or self.request.GET.get("plano") or self.kwargs.get("plan_pk")
 		if plan_pk:
-			return get_object_or_404(TrainingPlan, pk=plan_pk, created_by=self.request.user)
+			return get_object_or_404(_trainer_plan_queryset(self.request.user), pk=plan_pk)
 		return None
 
 	def get_form_kwargs(self):
@@ -185,10 +231,14 @@ class WorkoutPlanCreateView(LoginRequiredMixin, TrainerRequiredMixin, CreateView
 
 	def get_initial(self):
 		initial = super().get_initial()
-		athlete_pk = self.request.GET.get("aluno")
+		athlete_pk = _selected_student_pk(self.request)
 		if athlete_pk:
 			try:
-				athlete = Athlete.objects.get(pk=athlete_pk, trainer=self.request.user)
+				athlete = Athlete.objects.get(
+					pk=athlete_pk,
+					trainer=self.request.user,
+					relationship_status=StudentRelationshipStatus.ACTIVE,
+				)
 				initial["athlete"] = athlete.pk
 			except Athlete.DoesNotExist:
 				pass
@@ -196,20 +246,25 @@ class WorkoutPlanCreateView(LoginRequiredMixin, TrainerRequiredMixin, CreateView
 
 	def get_context_data(self, **kwargs):
 		ctx = super().get_context_data(**kwargs)
-		ctx["preselected_athlete"] = self.request.GET.get("aluno", "")
+		ctx["preselected_athlete"] = _selected_student_pk(self.request) or ""
 		plan = self.get_plan()
 		if plan:
 			ctx["plan"] = plan
 		return ctx
 
 	def form_valid(self, form):
-		form.instance.created_by = self.request.user
-		# If plan is set, sync athlete from plan
 		plan = form.cleaned_data.get("plan")
-		if plan:
-			form.instance.athlete = plan.athlete
-		messages.success(self.request, "Treino criado com sucesso.")
-		return super().form_valid(form)
+		athlete = plan.athlete if plan else form.cleaned_data["athlete"]
+		self.object = WorkoutService.create_workout(
+			self.request.user,
+			athlete,
+			form.cleaned_data["name"],
+			plan=plan,
+			objective=form.cleaned_data.get("objective", ""),
+			is_active=form.cleaned_data.get("is_active", True),
+		)
+		messages.success(self.request, "Workout created successfully.")
+		return redirect(self.get_success_url())
 
 	def get_success_url(self):
 		if self.object.plan:
@@ -223,7 +278,7 @@ class WorkoutPlanUpdateView(LoginRequiredMixin, TrainerRequiredMixin, UpdateView
 	template_name = "workouts/workout_form.html"
 
 	def get_queryset(self):
-		return WorkoutPlan.objects.filter(created_by=self.request.user)
+		return _trainer_workout_queryset(self.request.user)
 
 	def get_form_kwargs(self):
 		kwargs = super().get_form_kwargs()
@@ -237,7 +292,7 @@ class WorkoutPlanUpdateView(LoginRequiredMixin, TrainerRequiredMixin, UpdateView
 		return ctx
 
 	def form_valid(self, form):
-		messages.success(self.request, "Treino atualizado com sucesso.")
+		messages.success(self.request, "Workout updated successfully.")
 		return super().form_valid(form)
 
 
@@ -246,11 +301,11 @@ class WorkoutPlanDeleteView(LoginRequiredMixin, TrainerRequiredMixin, DeleteView
 	template_name = "workouts/workout_confirm_delete.html"
 
 	def get_queryset(self):
-		return WorkoutPlan.objects.filter(created_by=self.request.user)
+		return _trainer_workout_queryset(self.request.user)
 
 	def form_valid(self, form):
 		plan = self.object.plan
-		messages.success(self.request, "Treino excluído com sucesso.")
+		messages.success(self.request, "Workout deleted successfully.")
 		response = super().form_valid(form)
 		return response
 
@@ -268,7 +323,7 @@ class WorkoutPlanDetailView(LoginRequiredMixin, TrainerRequiredMixin, DetailView
 	context_object_name = "workout"
 
 	def get_queryset(self):
-		return WorkoutPlan.objects.filter(created_by=self.request.user).select_related("plan", "athlete__user").prefetch_related(
+		return _trainer_workout_queryset(self.request.user).select_related("plan", "athlete__user").prefetch_related(
 			"exercises__exercise_ref", "exercises__load_updates", "exercises__progress_logs",
 			"exercises__alternatives__exercise_ref",
 		)
@@ -304,9 +359,55 @@ class WorkoutPlanDetailView(LoginRequiredMixin, TrainerRequiredMixin, DetailView
 		return context
 
 
+class StudentWorkoutListView(LoginRequiredMixin, LinkedStudentRequiredMixin, ListView):
+	model = WorkoutPlan
+	template_name = "workouts/student_workout_list.html"
+	context_object_name = "workouts"
+
+	def get_queryset(self):
+		profile = self.request.user.get_athlete_profile()
+		return (
+			WorkoutPlan.objects.filter(athlete=profile, is_archived=False)
+			.select_related("plan")
+			.prefetch_related("exercises__exercise_ref")
+			.order_by("-is_active", "name")
+		)
+
+	def get_context_data(self, **kwargs):
+		ctx = super().get_context_data(**kwargs)
+		ctx["profile"] = self.request.user.get_athlete_profile()
+		return ctx
+
+
+class StudentWorkoutDetailView(LoginRequiredMixin, LinkedStudentRequiredMixin, DetailView):
+	model = WorkoutPlan
+	template_name = "workouts/student_workout_detail.html"
+	context_object_name = "workout"
+
+	def get_queryset(self):
+		profile = self.request.user.get_athlete_profile()
+		return (
+			WorkoutPlan.objects.filter(athlete=profile, is_archived=False)
+			.select_related("plan", "athlete__trainer")
+			.prefetch_related(
+				"exercises__exercise_ref",
+				"exercises__load_updates",
+				"exercises__alternatives__exercise_ref",
+			)
+		)
+
+	def get_context_data(self, **kwargs):
+		ctx = super().get_context_data(**kwargs)
+		profile = self.request.user.get_athlete_profile()
+		ctx["profile"] = profile
+		ctx["can_update_loads"] = WorkoutService.student_can_update_workout_loads(self.request.user, self.object)
+		ctx["load_form"] = LoadUpdateForm()
+		return ctx
+
+
 class ExerciseCreateView(LoginRequiredMixin, TrainerRequiredMixin, View):
 	def post(self, request, pk):
-		workout = get_object_or_404(WorkoutPlan, pk=pk, created_by=request.user)
+		workout = get_object_or_404(_trainer_workout_queryset(request.user), pk=pk)
 		form = ExerciseForm(request.POST, trainer=request.user)
 		if form.is_valid():
 			exercise = form.save(commit=False)
@@ -315,7 +416,7 @@ class ExerciseCreateView(LoginRequiredMixin, TrainerRequiredMixin, View):
 			if exercise.exercise_ref and not exercise.name:
 				exercise.name = exercise.exercise_ref.name
 			exercise.save()
-			messages.success(request, f"Exercício '{exercise.display_name}' adicionado com sucesso.")
+			messages.success(request, f"Exercise '{exercise.display_name}' added successfully.")
 		return redirect("workout-detail", pk=workout.pk)
 
 
@@ -323,62 +424,71 @@ class ExerciseUpdateView(LoginRequiredMixin, TrainerRequiredMixin, View):
 	"""Update all tracked fields of an exercise. Creates progress log on save()."""
 
 	def post(self, request, workout_pk, exercise_pk):
-		workout = get_object_or_404(WorkoutPlan, pk=workout_pk, created_by=request.user)
+		workout = get_object_or_404(_trainer_workout_queryset(request.user), pk=workout_pk)
 		exercise = get_object_or_404(ExercisePrescription, pk=exercise_pk, workout=workout)
 		form = ExerciseUpdateForm(request.POST, instance=exercise)
 		if form.is_valid():
 			form.save()  # save() creates ExerciseProgressLog + LoadUpdate automatically
-			messages.success(request, "Exercício atualizado com sucesso.")
+			messages.success(request, "Exercise updated successfully.")
 		return redirect("workout-detail", pk=workout.pk)
 
 
 class ExerciseDeleteView(LoginRequiredMixin, TrainerRequiredMixin, View):
 	def post(self, request, workout_pk, exercise_pk):
-		workout = get_object_or_404(WorkoutPlan, pk=workout_pk, created_by=request.user)
+		workout = get_object_or_404(_trainer_workout_queryset(request.user), pk=workout_pk)
 		exercise = get_object_or_404(ExercisePrescription, pk=exercise_pk, workout=workout)
 		name = exercise.display_name
 		exercise.delete()
-		messages.success(request, f"Exercício '{name}' excluído.")
+		messages.success(request, f"Exercise '{name}' deleted.")
 		return redirect("workout-detail", pk=workout.pk)
 
 
 class UpdateExerciseLoadView(LoginRequiredMixin, TrainerRequiredMixin, View):
 	def post(self, request, workout_pk, exercise_pk):
-		workout = get_object_or_404(WorkoutPlan, pk=workout_pk, created_by=request.user)
+		workout = get_object_or_404(_trainer_workout_queryset(request.user), pk=workout_pk)
 		exercise = get_object_or_404(ExercisePrescription, pk=exercise_pk, workout=workout)
 		form = LoadUpdateForm(request.POST)
 		if form.is_valid():
-			with transaction.atomic():
-				previous_load = exercise.current_load_kg
-				new_load = form.cleaned_data["new_load_kg"]
-				reason = form.cleaned_data["reason"]
-				ExercisePrescription.objects.filter(pk=exercise.pk).update(current_load_kg=new_load)
-				LoadUpdate.objects.create(
-					exercise=exercise,
-					previous_load_kg=previous_load,
-					new_load_kg=new_load,
-					reason=reason or "Atualização manual",
-					updated_by=request.user,
-				)
-				# Also create progress log for load-only update
-				ExerciseProgressLog.objects.create(
-					exercise=exercise,
-					sets=exercise.sets,
-					reps=exercise.reps,
-					load_kg=new_load,
-					rest_seconds=exercise.rest_seconds,
-					notes=reason or "Atualização de carga",
-					updated_by=request.user,
-				)
-			messages.success(request, f"Carga atualizada para {new_load}kg.")
+			new_load = form.cleaned_data["new_load_kg"]
+			exercise, _ = WorkoutService.update_exercise_load(
+				request.user,
+				exercise,
+				new_load,
+				reason=form.cleaned_data["reason"] or "Manual update",
+			)
+			messages.success(request, f"Load updated to {new_load} kg.")
 		return redirect("workout-detail", pk=workout.pk)
+
+
+class StudentUpdateExerciseLoadView(LoginRequiredMixin, LinkedStudentRequiredMixin, View):
+	def post(self, request, workout_pk, exercise_pk):
+		profile = request.user.get_athlete_profile()
+		workout = get_object_or_404(WorkoutPlan, pk=workout_pk, athlete=profile, is_archived=False)
+		exercise = get_object_or_404(ExercisePrescription, pk=exercise_pk, workout=workout)
+
+		if not WorkoutService.student_can_update_workout_loads(request.user, workout):
+			messages.warning(request, "Este treino exige aprovacao do professor para atualizar cargas.")
+			return redirect("student-workout-detail", pk=workout.pk)
+
+		form = LoadUpdateForm(request.POST)
+		if form.is_valid():
+			new_load = form.cleaned_data["new_load_kg"]
+			reason = form.cleaned_data["reason"] or "Student submitted update"
+			exercise, _ = WorkoutService.update_exercise_load(
+				request.user,
+				exercise,
+				new_load,
+				reason=reason,
+			)
+			messages.success(request, f"Your load for {exercise.display_name} was updated to {new_load} kg.")
+		return redirect("student-workout-detail", pk=workout.pk)
 
 
 class ExerciseProgressDataView(LoginRequiredMixin, TrainerRequiredMixin, View):
 	"""JSON endpoint returning progress log data for charts."""
 
 	def get(self, request, workout_pk, exercise_pk):
-		workout = get_object_or_404(WorkoutPlan, pk=workout_pk, created_by=request.user)
+		workout = get_object_or_404(_trainer_workout_queryset(request.user), pk=workout_pk)
 		exercise = get_object_or_404(ExercisePrescription, pk=exercise_pk, workout=workout)
 		logs = exercise.progress_logs.order_by("created_at")
 		data = [
@@ -401,14 +511,86 @@ class WorkoutSessionView(LoginRequiredMixin, TrainerRequiredMixin, DetailView):
 	context_object_name = "workout"
 
 	def get_queryset(self):
-		return WorkoutPlan.objects.filter(created_by=self.request.user).select_related(
+		return _trainer_workout_queryset(self.request.user).select_related(
 			"athlete__user"
-		).prefetch_related("exercises__exercise_ref", "exercises__alternatives__exercise_ref")
+		).prefetch_related("exercises__exercise_ref", "exercises__alternatives__exercise_ref", "sessions__set_logs")
 
 	def get_context_data(self, **kwargs):
 		ctx = super().get_context_data(**kwargs)
-		ctx["exercises"] = self.object.exercises.select_related("exercise_ref").prefetch_related("alternatives__exercise_ref").all()
+		exercises = list(self.object.exercises.select_related("exercise_ref").prefetch_related("alternatives__exercise_ref").all())
+		active_session = WorkoutExecutionService.get_active_session(self.request.user, self.object)
+		if active_session is not None:
+			logs_by_exercise = {}
+			for set_log in active_session.set_logs.select_related("exercise", "exercise__exercise_ref").order_by("exercise__exercise_order", "set_number"):
+				logs_by_exercise.setdefault(set_log.exercise_id, []).append(set_log)
+			for exercise in exercises:
+				logs = logs_by_exercise.get(exercise.pk, [])
+				exercise.session_logs = logs
+				exercise.next_set_number = len(logs) + 1
+		else:
+			for exercise in exercises:
+				exercise.session_logs = []
+				exercise.next_set_number = 1
+
+		ctx["exercises"] = exercises
+		ctx["active_session"] = active_session
+		ctx["set_log_form"] = WorkoutSetLogForm()
+		ctx["recent_sessions"] = (
+			WorkoutSession.objects.filter(workout=self.object, trainer=self.request.user)
+			.prefetch_related("set_logs")
+			.order_by("-started_at")[:5]
+		)
 		return ctx
+
+
+class WorkoutSessionStartView(LoginRequiredMixin, TrainerRequiredMixin, View):
+	def post(self, request, pk):
+		workout = get_object_or_404(_trainer_workout_queryset(request.user), pk=pk)
+		try:
+			session = WorkoutExecutionService.start_session(request.user, workout)
+			messages.success(request, f"Session #{session.pk} started.")
+		except (PermissionDenied, ValidationError) as exc:
+			messages.error(request, getattr(exc, "messages", [str(exc)])[0])
+		return redirect("workout-session", pk=workout.pk)
+
+
+class WorkoutSessionSetLogCreateView(LoginRequiredMixin, TrainerRequiredMixin, View):
+	def post(self, request, workout_pk, session_pk, exercise_pk):
+		workout = get_object_or_404(_trainer_workout_queryset(request.user), pk=workout_pk)
+		form = WorkoutSetLogForm(request.POST)
+		if form.is_valid():
+			try:
+				set_log = WorkoutExecutionService.log_set(
+					request.user,
+					session_pk,
+					exercise_pk,
+					actual_reps=form.cleaned_data["actual_reps"],
+					load_kg=form.cleaned_data.get("load_kg"),
+					rpe=form.cleaned_data.get("rpe"),
+					rir=form.cleaned_data.get("rir"),
+					notes=form.cleaned_data.get("notes", ""),
+				)
+				messages.success(request, f"Set {set_log.set_number} logged for {set_log.exercise.display_name}.")
+			except (PermissionDenied, ValidationError) as exc:
+				messages.error(request, getattr(exc, "messages", [str(exc)])[0])
+		else:
+			messages.error(request, "Check reps, load, RPE and RIR before logging the set.")
+		return redirect("workout-session", pk=workout.pk)
+
+
+class WorkoutSessionFinishView(LoginRequiredMixin, TrainerRequiredMixin, View):
+	def post(self, request, workout_pk, session_pk):
+		workout = get_object_or_404(_trainer_workout_queryset(request.user), pk=workout_pk)
+		try:
+			session = WorkoutExecutionService.finish_session(
+				request.user,
+				session_pk,
+				notes=request.POST.get("notes", ""),
+			)
+			messages.success(request, f"Session #{session.pk} completed.")
+		except (PermissionDenied, ValidationError) as exc:
+			messages.error(request, getattr(exc, "messages", [str(exc)])[0])
+		return redirect("workout-detail", pk=workout.pk)
 
 
 # ──────────────────────────────────────────────
@@ -419,16 +601,16 @@ class AddAlternativeView(LoginRequiredMixin, TrainerRequiredMixin, View):
 	"""Add an alternative exercise to a prescription."""
 
 	def post(self, request, workout_pk, exercise_pk):
-		workout = get_object_or_404(WorkoutPlan, pk=workout_pk, created_by=request.user)
+		workout = get_object_or_404(_trainer_workout_queryset(request.user), pk=workout_pk)
 		prescription = get_object_or_404(ExercisePrescription, pk=exercise_pk, workout=workout)
 		form = ExerciseAlternativeForm(request.POST, trainer=request.user)
 		if form.is_valid():
 			alt = form.save(commit=False)
 			alt.prescription = prescription
 			alt.save()
-			messages.success(request, f"Substituto '{alt.exercise_ref.name}' adicionado.")
+			messages.success(request, f"Alternative '{alt.exercise_ref.name}' added.")
 		else:
-			messages.error(request, "Erro ao adicionar substituto.")
+			messages.error(request, "Could not add alternative.")
 		return redirect("workout-detail", pk=workout.pk)
 
 
@@ -436,12 +618,12 @@ class RemoveAlternativeView(LoginRequiredMixin, TrainerRequiredMixin, View):
 	"""Remove an alternative exercise from a prescription."""
 
 	def post(self, request, workout_pk, exercise_pk, alt_pk):
-		workout = get_object_or_404(WorkoutPlan, pk=workout_pk, created_by=request.user)
+		workout = get_object_or_404(_trainer_workout_queryset(request.user), pk=workout_pk)
 		prescription = get_object_or_404(ExercisePrescription, pk=exercise_pk, workout=workout)
 		alt = get_object_or_404(ExerciseAlternative, pk=alt_pk, prescription=prescription)
 		name = alt.exercise_ref.name
 		alt.delete()
-		messages.success(request, f"Substituto '{name}' removido.")
+		messages.success(request, f"Alternative '{name}' removed.")
 		return redirect("workout-detail", pk=workout.pk)
 
 
@@ -449,11 +631,11 @@ class ArchiveWorkoutView(LoginRequiredMixin, TrainerRequiredMixin, View):
 	"""Toggle archived state of a workout."""
 
 	def post(self, request, pk):
-		workout = get_object_or_404(WorkoutPlan, pk=pk, created_by=request.user)
+		workout = get_object_or_404(_trainer_workout_queryset(request.user), pk=pk)
 		workout.is_archived = not workout.is_archived
 		workout.save(update_fields=["is_archived"])
-		status = "arquivado" if workout.is_archived else "desarquivado"
-		messages.success(request, f"Treino {status} com sucesso.")
+		status = "archived" if workout.is_archived else "restored"
+		messages.success(request, f"Workout {status} successfully.")
 		if workout.plan:
 			return redirect("plan-detail", pk=workout.plan.pk)
 		return redirect("workout-list")

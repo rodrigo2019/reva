@@ -1,17 +1,17 @@
 {% extends 'base.html' %}
 {% block screen_id %}workout-form{% endblock %}
-{% block title %}{% if editing %}Editar Treino{% else %}Novo Treino{% endif %} — REVA{% endblock %}
+{% block title %}{% if editing %}Edit Workout{% else %}New Workout{% endif %} — REVA{% endblock %}
 {% block nav_students %}active{% endblock %}
 
 {% block content %}
 <div class="mb-6">
   <a href="{% if plan %}{% url 'plan-detail' plan.pk %}{% else %}{% url 'student-list' %}{% endif %}" class="text-sm opacity-50 hover:opacity-80 transition inline-flex items-center gap-1 mb-2">
     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-    {% if plan %}Voltar para {{ plan.name }}{% else %}Voltar para alunos{% endif %}
+    {% if plan %}Back to {{ plan.name }}{% else %}Back to students{% endif %}
   </a>
-  <h1 class="text-2xl sm:text-3xl font-extrabold">{% if editing %}Editar Treino{% else %}Novo Treino{% endif %}</h1>
+  <h1 class="text-2xl sm:text-3xl font-extrabold">{% if editing %}Edit Workout{% else %}New Workout{% endif %}</h1>
   <p class="opacity-50 mt-1 text-sm sm:text-base">
-    {% if editing %}Atualize os dados do treino.{% elif plan %}Criando treino dentro do plano <strong>{{ plan.name }}</strong> para {{ plan.athlete.user.get_full_name }}.{% else %}Preencha os dados para criar um treino para o aluno.{% endif %}
+    {% if editing %}Update the workout details and visibility.{% elif plan %}Creating a workout inside <strong>{{ plan.name }}</strong> for {{ plan.athlete.user.get_full_name }}.{% else %}Fill in the details to create a workout for a student.{% endif %}
   </p>
 </div>
 
@@ -20,22 +20,20 @@
     {% if form.errors %}
       <div role="alert" class="alert alert-error mb-4">
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <span>Corrija os erros abaixo para continuar.</span>
+        <span>Fix the errors below to continue.</span>
       </div>
     {% endif %}
     <form method="post" class="space-y-4">
       {% csrf_token %}
 
-      {# Hidden fields for plan context #}
       {% if form.plan.is_hidden %}
         {{ form.plan }}
         {{ form.athlete }}
       {% else %}
-        {# Plan selection (optional) #}
         <fieldset class="fieldset">
-          <legend class="fieldset-legend">Plano (opcional)</legend>
+          <legend class="fieldset-legend">Plan (optional)</legend>
           <select class="select w-full" name="plan">
-            <option value="">Sem plano (avulso)</option>
+            <option value="">No plan (standalone)</option>
             {% for option in form.plan.field.queryset %}
               <option value="{{ option.pk }}" {% if form.plan.value|stringformat:"s" == option.pk|stringformat:"s" %}selected{% endif %}>{{ option.name }} — {{ option.athlete.user.get_full_name }}</option>
             {% endfor %}
@@ -43,9 +41,9 @@
         </fieldset>
 
         <fieldset class="fieldset">
-          <legend class="fieldset-legend">Aluno</legend>
+          <legend class="fieldset-legend">Student</legend>
           <select class="select w-full{% if form.athlete.errors %} select-error{% endif %}" name="athlete" required>
-            <option value="" disabled {% if not form.athlete.value %}selected{% endif %}>Selecione o aluno</option>
+            <option value="" disabled {% if not form.athlete.value %}selected{% endif %}>Select a student</option>
             {% for option in form.athlete.field.queryset %}
               <option value="{{ option.pk }}" {% if form.athlete.value|stringformat:"s" == option.pk|stringformat:"s" %}selected{% endif %}>{{ option.user.get_full_name|default:option.user.username }}</option>
             {% endfor %}
@@ -55,22 +53,22 @@
       {% endif %}
 
       <fieldset class="fieldset">
-        <legend class="fieldset-legend">Nome do treino</legend>
-        <input class="input w-full{% if form.name.errors %} input-error{% endif %}" type="text" name="name" value="{{ form.name.value|default:'' }}" placeholder="ex: Treino A — Superior" required>
+        <legend class="fieldset-legend">Workout name</legend>
+        <input class="input w-full{% if form.name.errors %} input-error{% endif %}" type="text" name="name" value="{{ form.name.value|default:'' }}" placeholder="e.g. Workout A - Upper Body" required>
         {% if form.name.errors %}<p class="text-error text-xs mt-1">{{ form.name.errors.0 }}</p>{% endif %}
       </fieldset>
 
       <fieldset class="fieldset">
-        <legend class="fieldset-legend">Objetivo</legend>
-        <input class="input w-full" type="text" name="objective" value="{{ form.objective.value|default:'' }}" placeholder="ex: Hipertrofia de membros superiores">
+        <legend class="fieldset-legend">Objective</legend>
+        <input class="input w-full" type="text" name="objective" value="{{ form.objective.value|default:'' }}" placeholder="e.g. Upper-body hypertrophy">
       </fieldset>
 
       <label class="flex items-center gap-3 cursor-pointer">
         <input class="toggle toggle-primary" type="checkbox" name="is_active" {% if form.is_active.value %}checked{% endif %}>
-        <span class="label-text">Treino ativo</span>
+        <span class="label-text">Active workout</span>
       </label>
 
-      <button class="btn btn-primary btn-block" type="submit">{% if editing %}Salvar alterações{% else %}Criar treino{% endif %}</button>
+      <button class="btn btn-primary btn-block" type="submit">{% if editing %}Save changes{% else %}Create workout{% endif %}</button>
     </form>
   </div>
 </div>

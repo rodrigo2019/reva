@@ -1,8 +1,25 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 
 from athletes.models import Athlete
+
+
+class PlanOrigin(models.TextChoices):
+	SELF_CREATED = "self_created", "Criado pelo aluno"
+	AI_SUGGESTED = "ai_suggested", "Sugerido pela IA"
+	TRAINER_PRESCRIBED = "trainer_prescribed", "Prescrito pelo professor"
+	TEMPLATE = "template", "Template"
+	IMPORTED = "imported", "Importado"
+
+
+def athlete_allows_creator(athlete, created_by_id):
+	if not athlete or not created_by_id:
+		return True
+	return athlete.user_id == created_by_id or (athlete.has_active_trainer and athlete.trainer_id == created_by_id)
 
 
 class MuscleGroup(models.TextChoices):
@@ -140,6 +157,7 @@ class TrainingPlan(models.Model):
 	athlete = models.ForeignKey(Athlete, on_delete=models.CASCADE, related_name="training_plans")
 	name = models.CharField("Nome do plano", max_length=150)
 	objective = models.CharField("Objetivo", max_length=300, blank=True)
+	origin = models.CharField(max_length=30, choices=PlanOrigin.choices, default=PlanOrigin.TRAINER_PRESCRIBED)
 	is_active = models.BooleanField("Ativo", default=True)
 	created_by = models.ForeignKey(
 		settings.AUTH_USER_MODEL,
@@ -151,6 +169,16 @@ class TrainingPlan(models.Model):
 
 	class Meta:
 		ordering = ["-updated_at"]
+
+	def clean(self):
+		if self.athlete_id and self.created_by_id and not athlete_allows_creator(self.athlete, self.created_by_id):
+			raise ValidationError("O plano deve pertencer ao aluno ou ao professor ativo do aluno.")
+
+	def save(self, *args, **kwargs):
+		if self.athlete_id and self.created_by_id and self.athlete.user_id == self.created_by_id and self.origin == PlanOrigin.TRAINER_PRESCRIBED:
+			self.origin = PlanOrigin.SELF_CREATED
+		self.full_clean()
+		super().save(*args, **kwargs)
 
 	def __str__(self):
 		return f"{self.name} — {self.athlete}"
@@ -170,6 +198,7 @@ class WorkoutPlan(models.Model):
 	athlete = models.ForeignKey(Athlete, on_delete=models.CASCADE, related_name="workout_plans")
 	name = models.CharField(max_length=120)
 	objective = models.CharField(max_length=200, blank=True)
+	origin = models.CharField(max_length=30, choices=PlanOrigin.choices, default=PlanOrigin.TRAINER_PRESCRIBED)
 	is_active = models.BooleanField(default=True)
 	is_archived = models.BooleanField("Arquivado", default=False)
 	created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="created_workouts")
@@ -178,6 +207,20 @@ class WorkoutPlan(models.Model):
 
 	class Meta:
 		ordering = ["-updated_at"]
+
+	def clean(self):
+		if self.athlete_id and self.created_by_id and not athlete_allows_creator(self.athlete, self.created_by_id):
+			raise ValidationError("O treino deve pertencer ao aluno ou ao professor ativo do aluno.")
+		if self.plan_id and self.athlete_id and self.plan.athlete_id != self.athlete_id:
+			raise ValidationError("O treino vinculado a um plano deve usar o mesmo aluno do plano.")
+		if self.plan_id and self.created_by_id and self.plan.created_by_id != self.created_by_id:
+			raise ValidationError("O plano vinculado deve pertencer ao mesmo treinador do treino.")
+
+	def save(self, *args, **kwargs):
+		if self.athlete_id and self.created_by_id and self.athlete.user_id == self.created_by_id and self.origin == PlanOrigin.TRAINER_PRESCRIBED:
+			self.origin = PlanOrigin.SELF_CREATED
+		self.full_clean()
+		super().save(*args, **kwargs)
 
 	def __str__(self):
 		return f"{self.name} - {self.athlete}"
@@ -311,6 +354,96 @@ class ExerciseProgressLog(models.Model):
 
 	def __str__(self):
 		return f"{self.exercise.name}: {self.sets}x{self.reps} @ {self.load_kg or 0}kg"
+
+
+class WorkoutSession(models.Model):
+	class Status(models.TextChoices):
+		IN_PROGRESS = "in_progress", "Em andamento"
+		COMPLETED = "completed", "Concluida"
+		CANCELLED = "cancelled", "Cancelada"
+
+	workout = models.ForeignKey(WorkoutPlan, on_delete=models.CASCADE, related_name="sessions")
+	athlete = models.ForeignKey(Athlete, on_delete=models.CASCADE, related_name="workout_sessions")
+	trainer = models.ForeignKey(
+		settings.AUTH_USER_MODEL,
+		on_delete=models.SET_NULL,
+		related_name="led_workout_sessions",
+		null=True,
+		blank=True,
+	)
+	status = models.CharField(max_length=20, choices=Status.choices, default=Status.IN_PROGRESS)
+	started_at = models.DateTimeField(default=timezone.now)
+	completed_at = models.DateTimeField(null=True, blank=True)
+	notes = models.TextField(blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		ordering = ["-started_at"]
+
+	def clean(self):
+		if self.workout_id and self.athlete_id and self.workout.athlete_id != self.athlete_id:
+			raise ValidationError("A sessao deve usar o mesmo aluno do treino.")
+		if self.workout_id and self.trainer_id and self.workout.created_by_id != self.trainer_id:
+			raise ValidationError("A sessao deve pertencer ao treinador criador do treino.")
+		if self.athlete_id and self.trainer_id and (not self.athlete.has_active_trainer or self.athlete.trainer_id != self.trainer_id):
+			raise ValidationError("A sessao deve pertencer a um aluno vinculado ao treinador.")
+		if self.status == self.Status.COMPLETED and self.completed_at is None:
+			raise ValidationError("Uma sessao concluida precisa ter data de conclusao.")
+
+	def save(self, *args, **kwargs):
+		self.full_clean()
+		super().save(*args, **kwargs)
+
+	@property
+	def duration_minutes(self):
+		end = self.completed_at or timezone.now()
+		return max(0, round((end - self.started_at).total_seconds() / 60))
+
+	def __str__(self):
+		return f"{self.workout.name} - {self.athlete} ({self.get_status_display()})"
+
+
+class WorkoutSetLog(models.Model):
+	session = models.ForeignKey(WorkoutSession, on_delete=models.CASCADE, related_name="set_logs")
+	exercise = models.ForeignKey(ExercisePrescription, on_delete=models.CASCADE, related_name="execution_logs")
+	set_number = models.PositiveSmallIntegerField()
+	target_reps = models.CharField(max_length=30, blank=True)
+	actual_reps = models.PositiveSmallIntegerField(validators=[MinValueValidator(0)])
+	load_kg = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+	rpe = models.DecimalField(
+		max_digits=3,
+		decimal_places=1,
+		null=True,
+		blank=True,
+		validators=[MinValueValidator(1), MaxValueValidator(10)],
+	)
+	rir = models.DecimalField(
+		max_digits=3,
+		decimal_places=1,
+		null=True,
+		blank=True,
+		validators=[MinValueValidator(0), MaxValueValidator(10)],
+	)
+	notes = models.CharField(max_length=255, blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		ordering = ["session", "exercise__exercise_order", "set_number", "created_at"]
+		unique_together = ("session", "exercise", "set_number")
+
+	def clean(self):
+		if self.session_id and self.exercise_id and self.exercise.workout_id != self.session.workout_id:
+			raise ValidationError("A serie registrada deve pertencer ao treino da sessao.")
+		if self.load_kg is not None and self.load_kg < 0:
+			raise ValidationError("A carga registrada nao pode ser negativa.")
+
+	def save(self, *args, **kwargs):
+		self.full_clean()
+		super().save(*args, **kwargs)
+
+	def __str__(self):
+		return f"{self.exercise.display_name} - serie {self.set_number}: {self.actual_reps} reps"
 
 
 class ExerciseAlternative(models.Model):

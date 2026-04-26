@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}Meu perfil — REVA{% endblock %}
+{% block screen_id %}student-profile{% endblock %}
+{% block assistant_screen_name %}Perfil do aluno{% endblock %}
+{% block nav_student_profile %}active{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl sm:text-3xl font-extrabold">Meu perfil</h1>
+  <p class="opacity-50 mt-1 text-sm sm:text-base">Revise seus dados de treino, anamnese, avaliacoes e permissoes de acompanhamento.</p>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+    <p class="text-xs uppercase tracking-wide opacity-50 mb-2">Professor</p>
+    {% if profile.has_active_trainer %}
+      <p class="font-semibold">{{ profile.trainer.get_full_name|default:profile.trainer.username }}</p>
+      <p class="text-sm opacity-60 mt-1">{{ profile.trainer.email|default:"Email nao informado" }}</p>
+    {% else %}
+      <p class="font-semibold">Modo independente</p>
+      <p class="text-sm opacity-60 mt-1">Professor e um upgrade opcional.</p>
+    {% endif %}
+  </div>
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+    <p class="text-xs uppercase tracking-wide opacity-50 mb-2">Proximo compromisso</p>
+    {% if next_class %}
+      <p class="font-semibold">{{ next_class.scheduled_at|date:"d/m/Y H:i" }}</p>
+      <p class="text-sm opacity-60 mt-1">{{ next_class.workout_plan.name|default:"Compromisso avulso" }}</p>
+    {% else %}
+      <p class="text-sm opacity-60">Nenhum compromisso futuro.</p>
+    {% endif %}
+  </div>
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+    <p class="text-xs uppercase tracking-wide opacity-50 mb-2">Atualizacao de carga</p>
+    <p class="font-semibold {% if profile.can_manage_own_loads %}text-success{% else %}text-warning{% endif %}">
+      {% if profile.can_manage_own_loads %}Liberada{% else %}Requer aprovacao{% endif %}
+    </p>
+    <p class="text-sm opacity-60 mt-1">Treinos ativos disponiveis: {{ active_workouts }}.</p>
+  </div>
+</div>
+
+<div class="grid xl:grid-cols-5 gap-4 sm:gap-6">
+  <div class="xl:col-span-3 space-y-4">
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <h2 class="font-bold text-lg mb-4">Anamnesis</h2>
+      {% if anamnesis %}
+        <div class="grid sm:grid-cols-2 gap-3 text-sm">
+          <div><span class="opacity-50">Primary goal:</span> {{ anamnesis.get_primary_goal_display|default:"-" }}</div>
+          <div><span class="opacity-50">Experience:</span> {{ anamnesis.get_training_experience_display|default:"-" }}</div>
+          <div><span class="opacity-50">Frequency:</span> {{ anamnesis.training_frequency|default:"-" }}{% if anamnesis.training_frequency %}x/week{% endif %}</div>
+          <div><span class="opacity-50">Sleep:</span> {{ anamnesis.sleep_hours|default:"-" }}{% if anamnesis.sleep_hours %}h/night{% endif %}</div>
+        </div>
+        {% if anamnesis.medical_conditions or anamnesis.injuries_history or anamnesis.additional_notes %}
+          <div class="mt-4 space-y-3 text-sm">
+            {% if anamnesis.medical_conditions %}<p><span class="font-semibold">Medical conditions:</span> {{ anamnesis.medical_conditions }}</p>{% endif %}
+            {% if anamnesis.injuries_history %}<p><span class="font-semibold">Injury history:</span> {{ anamnesis.injuries_history }}</p>{% endif %}
+            {% if anamnesis.additional_notes %}<p><span class="font-semibold">Additional notes:</span> {{ anamnesis.additional_notes }}</p>{% endif %}
+          </div>
+        {% endif %}
+      {% else %}
+        <p class="text-sm opacity-60">Nenhuma anamnese registrada ainda.</p>
+      {% endif %}
+    </div>
+
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <h2 class="font-bold text-lg mb-4">Latest Assessments</h2>
+      {% if assessments %}
+        <div class="space-y-3">
+          {% for assessment in assessments %}
+            <div class="rounded-xl border border-base-300 p-4">
+              <div class="flex items-center justify-between gap-3 mb-2">
+                <p class="font-semibold">{{ assessment.assessed_at|date:"d/m/Y" }}</p>
+                {% if assessment.bmi %}<span class="badge badge-ghost badge-sm">IMC {{ assessment.bmi }}</span>{% endif %}
+              </div>
+              <div class="grid sm:grid-cols-3 gap-2 text-sm">
+                <div><span class="opacity-50">Weight:</span> {{ assessment.weight_kg|default:"-" }}{% if assessment.weight_kg %} kg{% endif %}</div>
+                <div><span class="opacity-50">Body fat:</span> {{ assessment.body_fat_percentage|default:"-" }}{% if assessment.body_fat_percentage %}%{% endif %}</div>
+                <div><span class="opacity-50">Waist:</span> {{ assessment.waist_cm|default:"-" }}{% if assessment.waist_cm %} cm{% endif %}</div>
+              </div>
+              {% if assessment.notes %}<p class="text-sm opacity-70 mt-3">{{ assessment.notes }}</p>{% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-sm opacity-60">No physical assessments recorded yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="xl:col-span-2">
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5 space-y-3">
+      <h2 class="font-bold text-lg">Current Summary</h2>
+      {% if latest_assessment %}
+        <div class="grid grid-cols-2 gap-3 text-sm">
+          <div class="rounded-xl bg-base-200 p-3"><p class="opacity-50 text-xs">Weight</p><p class="font-semibold">{{ latest_assessment.weight_kg|default:"-" }}{% if latest_assessment.weight_kg %} kg{% endif %}</p></div>
+          <div class="rounded-xl bg-base-200 p-3"><p class="opacity-50 text-xs">Body fat</p><p class="font-semibold">{{ latest_assessment.body_fat_percentage|default:"-" }}{% if latest_assessment.body_fat_percentage %}%{% endif %}</p></div>
+          <div class="rounded-xl bg-base-200 p-3"><p class="opacity-50 text-xs">IMC</p><p class="font-semibold">{{ latest_assessment.bmi|default:"-" }}</p></div>
+          <div class="rounded-xl bg-base-200 p-3"><p class="opacity-50 text-xs">Height</p><p class="font-semibold">{{ latest_assessment.height_cm|default:"-" }}{% if latest_assessment.height_cm %} cm{% endif %}</p></div>
+        </div>
+      {% else %}
+        <p class="text-sm opacity-60">No assessment available yet.</p>
+      {% endif %}
+      <div class="pt-2 flex flex-col gap-2">
+        <a href="{% url 'student-workout-list' %}" class="btn btn-primary btn-sm">Open workouts</a>
+        <a href="{% url 'student-schedule' %}" class="btn btn-ghost btn-sm">View schedule</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

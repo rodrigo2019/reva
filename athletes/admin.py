@@ -5,7 +5,8 @@ from .models import Anamnesis, Athlete, PhysicalAssessment
 
 @admin.register(Athlete)
 class AthleteAdmin(admin.ModelAdmin):
-	list_display = ("user", "trainer", "created_at")
+	list_display = ("user", "trainer", "relationship_status", "created_at")
+	list_filter = ("relationship_status",)
 
 
 @admin.register(Anamnesis)

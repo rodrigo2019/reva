@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="pt-br" data-theme="dark">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>REVA — Entrar</title>
+  <title>REVA — Sign in</title>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,52 +22,52 @@
 </head>
 <body class="min-h-screen flex">
 
-  <!-- Lado esquerdo — visual -->
+  <!-- Left side -->
   <div class="login-bg hidden lg:flex flex-col justify-between p-12 text-white" style="flex:1.15">
     <div>
       <a href="{% url 'landing' %}" class="text-2xl font-black tracking-wider no-underline" style="color:#fff">REVA</a>
     </div>
     <div style="max-width:420px">
       <h1 class="text-5xl font-black leading-tight mb-6" style="line-height:1.08">
-        Treino com<br>direção e<br>evolução visível.
+        Training with<br>clear direction<br>and visible progress.
       </h1>
       <p style="color:rgba(255,255,255,.72); font-size:1.05rem; line-height:1.7; margin-bottom:2rem">
-        Acompanhe cargas, visualize progresso em gráficos e tire dúvidas com IA&nbsp;contextualizada.
+        Track loads, review progress through charts, and ask questions with contextual AI support.
       </p>
       <div class="flex gap-6">
         <div>
           <div class="text-3xl font-extrabold">+320</div>
-          <div style="color:rgba(255,255,255,.55); font-size:.82rem">alunas</div>
+          <div style="color:rgba(255,255,255,.55); font-size:.82rem">students</div>
         </div>
         <div>
           <div class="text-3xl font-extrabold">+18%</div>
-          <div style="color:rgba(255,255,255,.55); font-size:.82rem">evolução média</div>
+          <div style="color:rgba(255,255,255,.55); font-size:.82rem">average progress</div>
         </div>
         <div>
           <div class="text-3xl font-extrabold">92%</div>
-          <div style="color:rgba(255,255,255,.55); font-size:.82rem">retenção</div>
+          <div style="color:rgba(255,255,255,.55); font-size:.82rem">retention</div>
         </div>
       </div>
     </div>
-    <p style="color:rgba(255,255,255,.35); font-size:.78rem">© 2026 REVA — Plataforma de acompanhamento com IA</p>
+    <p style="color:rgba(255,255,255,.35); font-size:.78rem">© 2026 REVA — AI-powered coaching platform</p>
   </div>
 
-  <!-- Lado direito — formulário -->
-  <div class="form-side bg-base-100 p-6 sm:p-8 lg:p-16" style="flex:1; min-width:0">
+  <!-- Right side -->
+  <div class="form-side bg-base-100 p-5 sm:p-8 lg:p-16" style="flex:1; min-width:0">
     <div class="max-w-sm mx-auto w-full">
 
-      <!-- Logo mobile -->
+      <!-- Mobile logo -->
       <a href="{% url 'landing' %}" class="lg:hidden text-xl font-black tracking-wider mb-8 block">REVA</a>
 
       <div class="mb-8">
-        <h2 class="text-2xl sm:text-3xl font-extrabold mb-2">Bem-vindo de volta</h2>
-        <p class="text-base-content text-sm sm:text-base" style="opacity:.55">Entre para acessar seus treinos e acompanhar sua evolução.</p>
+        <h2 class="text-2xl sm:text-3xl font-extrabold mb-2">Welcome back</h2>
+        <p class="text-base-content text-sm sm:text-base" style="opacity:.55">Sign in to access workouts, track progress, and manage your training routine.</p>
       </div>
 
       {% if form.errors %}
       <div role="alert" class="alert alert-error mb-6">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-        <span>Usuário ou senha inválidos.</span>
+        <span>Invalid username or password.</span>
       </div>
       {% endif %}
 
@@ -75,7 +75,7 @@
         {% csrf_token %}
 
         <fieldset class="fieldset mb-4">
-          <legend class="fieldset-legend">Usuário</legend>
+          <legend class="fieldset-legend">Username</legend>
           <div class="flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
             <input class="input grow" type="text" name="username" placeholder="seu.usuario" required autofocus>
@@ -83,22 +83,22 @@
         </fieldset>
 
         <fieldset class="fieldset mb-6">
-          <legend class="fieldset-legend">Senha</legend>
+          <legend class="fieldset-legend">Password</legend>
           <div class="flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
             <input class="input grow" type="password" name="password" placeholder="••••••••" required>
           </div>
         </fieldset>
 
-        <button class="btn btn-primary btn-block text-base" type="submit">Entrar na plataforma</button>
+        <button class="btn btn-primary btn-block text-base" type="submit">Sign in</button>
       </form>
 
-      <div class="divider my-6">ou</div>
+      <div class="divider my-6">or</div>
 
-      <a href="{% url 'landing' %}" class="btn btn-ghost btn-block">Voltar para o site</a>
+      <a href="{% url 'landing' %}" class="btn btn-ghost btn-block">Back to website</a>
 
       <p class="text-center mt-8" style="font-size:.75rem; opacity:.4">
-        Contas são criadas pelo treinador.<br>Fale com sua treinadora caso não tenha acesso.
+        Alunos podem entrar de forma independente.<br>Professores e academias sao camadas opcionais de acompanhamento.
       </p>
     </div>
   </div>

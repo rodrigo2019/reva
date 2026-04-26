@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}{{ workout.name }} — REVA{% endblock %}
+{% block screen_id %}student-workout-detail{% endblock %}
+{% block assistant_screen_name %}Detalhe do treino{% endblock %}
+{% block nav_student_workouts %}active{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+  <a href="{% url 'student-workout-list' %}" class="text-sm opacity-50 hover:opacity-80 transition inline-flex items-center gap-1 mb-2">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    Back to workouts
+  </a>
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold">{{ workout.name }}</h1>
+      <p class="opacity-50 mt-1 text-sm sm:text-base">{{ workout.plan.name|default:"Standalone workout" }}{% if workout.objective %} · {{ workout.objective }}{% endif %}</p>
+    </div>
+    <span class="badge {% if can_update_loads %}badge-success{% else %}badge-warning{% endif %} badge-lg">
+      {% if can_update_loads %}Voce pode atualizar cargas{% else %}Ajustes com aprovacao{% endif %}
+    </span>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mb-6">
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-4">
+    <p class="opacity-50 text-xs">Professor</p>
+    {% if workout.athlete.has_active_trainer %}
+      <p class="font-semibold mt-1">{{ workout.athlete.trainer.get_full_name|default:workout.athlete.trainer.username }}</p>
+    {% else %}
+      <p class="font-semibold mt-1">Independente</p>
+    {% endif %}
+  </div>
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-4"><p class="opacity-50 text-xs">Exercises</p><p class="font-semibold mt-1">{{ workout.exercises.count }}</p></div>
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-4"><p class="opacity-50 text-xs">Plan</p><p class="font-semibold mt-1">{{ workout.plan.name|default:"No plan" }}</p></div>
+  <div class="bg-base-100 rounded-2xl border border-base-300 p-4"><p class="opacity-50 text-xs">Updated</p><p class="font-semibold mt-1">{{ workout.updated_at|date:"d/m/Y H:i" }}</p></div>
+</div>
+
+<div class="space-y-4">
+  {% for exercise in workout.exercises.all %}
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
+      <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap mb-2">
+            <h2 class="font-bold text-lg">{{ exercise.display_name }}</h2>
+            {% if exercise.muscle_group_label %}<span class="badge badge-ghost badge-sm">{{ exercise.muscle_group_label }}</span>{% endif %}
+            {% if exercise.equipment_label %}<span class="badge badge-ghost badge-sm">{{ exercise.equipment_label }}</span>{% endif %}
+          </div>
+          <p class="text-sm opacity-70">{{ exercise.sets }}x{{ exercise.reps }} · Rest {{ exercise.rest_seconds }}s</p>
+          {% if exercise.notes %}<p class="text-sm mt-2">{{ exercise.notes }}</p>{% endif %}
+          <p class="text-sm mt-3"><span class="opacity-50">Current load:</span> <span class="font-semibold">{{ exercise.current_load_kg|default:"-" }}{% if exercise.current_load_kg %} kg{% endif %}</span></p>
+
+          {% if exercise.alternatives.all %}
+            <div class="mt-4">
+              <p class="text-xs uppercase tracking-wide opacity-50 mb-2">Suggested alternatives</p>
+              <div class="flex flex-wrap gap-2">
+                {% for alternative in exercise.alternatives.all %}
+                  <span class="badge badge-outline gap-1">{{ alternative.exercise_ref.name }}{% if alternative.notes %} · {{ alternative.notes }}{% endif %}</span>
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="lg:w-80 w-full rounded-xl bg-base-200 p-4">
+          <p class="font-semibold text-sm mb-3">Log progression</p>
+          {% if can_update_loads %}
+            <form method="post" action="{% url 'student-exercise-load-update' workout.pk exercise.pk %}" class="space-y-3">
+              {% csrf_token %}
+              <fieldset class="fieldset">
+                <legend class="fieldset-legend">New load (kg)</legend>
+                <input class="input input-sm w-full" type="number" step="0.01" min="0" name="new_load_kg" required>
+              </fieldset>
+              <fieldset class="fieldset">
+                <legend class="fieldset-legend">Note</legend>
+                <input class="input input-sm w-full" type="text" name="reason" placeholder="Example: stable execution, full reps">
+              </fieldset>
+              <button class="btn btn-primary btn-sm w-full" type="submit">Save my load</button>
+            </form>
+          {% else %}
+            <p class="text-sm opacity-70">Este treino exige aprovacao do professor para ajustes de carga.</p>
+          {% endif %}
+          <div class="mt-4">
+            <p class="text-xs uppercase tracking-wide opacity-50 mb-2">Latest entries</p>
+            {% for update in exercise.load_updates.all|slice:":3" %}
+              <div class="flex items-center justify-between text-sm py-1">
+                <span>{{ update.created_at|date:"d/m H:i" }}</span>
+                <span class="font-semibold">{{ update.new_load_kg }} kg</span>
+              </div>
+            {% empty %}
+              <p class="text-sm opacity-60">No entries yet.</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-8 text-center">
+      <p class="font-semibold mb-2">No exercises in this workout yet</p>
+      <p class="text-sm opacity-60">Adicione exercicios ou peca ajuda da IA para estruturar este treino.</p>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}
