@@ -402,6 +402,27 @@ class StudentWorkoutDetailView(LoginRequiredMixin, LinkedStudentRequiredMixin, D
 		ctx["profile"] = profile
 		ctx["can_update_loads"] = WorkoutService.student_can_update_workout_loads(self.request.user, self.object)
 		ctx["load_form"] = LoadUpdateForm()
+
+		exercises = list(self.object.exercises.all())
+		total_sets = 0
+		total_load = 0
+		muscle_groups: list[str] = []
+		for ex in exercises:
+			total_sets += ex.sets or 0
+			if ex.current_load_kg:
+				total_load += float(ex.current_load_kg) * (ex.sets or 0)
+			label = ex.muscle_group_label
+			if label and label not in muscle_groups:
+				muscle_groups.append(label)
+		# Rough estimate: ~45s per set + rest seconds
+		estimated_seconds = sum(((ex.sets or 0) * (45 + (ex.rest_seconds or 0))) for ex in exercises)
+		ctx["stats"] = {
+			"exercise_count": len(exercises),
+			"total_sets": total_sets,
+			"estimated_minutes": int(round(estimated_seconds / 60)) if estimated_seconds else 0,
+			"muscle_groups": muscle_groups,
+			"total_load_kg": round(total_load, 1) if total_load else 0,
+		}
 		return ctx
 
 

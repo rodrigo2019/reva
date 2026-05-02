@@ -5,98 +5,348 @@
 {% block nav_student_workouts %}active{% endblock %}
 
 {% block content %}
-<div class="mb-6">
-  <a href="{% url 'student-workout-list' %}" class="text-sm opacity-50 hover:opacity-80 transition inline-flex items-center gap-1 mb-2">
+<style>
+  .swd-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.25rem;
+    padding: 1.75rem;
+    background:
+      radial-gradient(circle at 0% 0%, oklch(0.55 0.18 290 / .35), transparent 55%),
+      radial-gradient(circle at 100% 100%, oklch(0.65 0.18 200 / .25), transparent 55%),
+      linear-gradient(135deg, oklch(0.22 0.04 280), oklch(0.18 0.02 260));
+    border: 1px solid oklch(0.32 0.04 280);
+  }
+  .swd-hero::after {
+    content: "";
+    position: absolute; inset: 0;
+    background-image: radial-gradient(oklch(1 0 0 / .04) 1px, transparent 1px);
+    background-size: 18px 18px;
+    pointer-events: none;
+    opacity: .35;
+  }
+  .swd-stat {
+    background: oklch(0.18 0.01 260 / .7);
+    border: 1px solid oklch(0.3 0.02 260);
+    border-radius: 1rem;
+    padding: .9rem 1rem;
+  }
+  .swd-stat .label { font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; opacity:.55; }
+  .swd-stat .value { font-size:1.35rem; font-weight:800; line-height:1.1; margin-top:.2rem; }
+  .swd-stat .hint  { font-size:.7rem; opacity:.5; margin-top:.15rem; }
+
+  .swd-exercise {
+    position:relative;
+    border-radius: 1.25rem;
+    border: 1px solid oklch(0.3 0.02 260);
+    background: linear-gradient(180deg, oklch(0.21 0.01 260), oklch(0.19 0.01 260));
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+  .swd-exercise:hover { border-color: oklch(0.45 0.06 280); }
+  .swd-num {
+    width: 2.1rem; height: 2.1rem; border-radius: .75rem;
+    display:inline-flex; align-items:center; justify-content:center;
+    background: linear-gradient(135deg, oklch(0.55 0.18 290), oklch(0.5 0.16 220));
+    color: white; font-weight: 800; font-size: .95rem;
+    box-shadow: 0 6px 18px oklch(0.5 0.18 280 / .35);
+    flex-shrink: 0;
+  }
+  .swd-mini {
+    background: oklch(0.16 0.01 260);
+    border: 1px solid oklch(0.28 0.02 260);
+    border-radius: .85rem;
+    padding: .65rem .75rem;
+    text-align:center;
+  }
+  .swd-mini .k { font-size:.6rem; text-transform:uppercase; letter-spacing:.08em; opacity:.55; }
+  .swd-mini .v { font-size:1.05rem; font-weight:700; margin-top:.15rem; }
+
+  .swd-load {
+    background: linear-gradient(135deg, oklch(0.3 0.13 290 / .35), oklch(0.25 0.1 220 / .35));
+    border: 1px solid oklch(0.45 0.12 280 / .55);
+    border-radius: 1rem;
+    padding: 1rem 1.1rem;
+  }
+  .swd-load .v {
+    font-size: 1.9rem; font-weight: 800; line-height: 1;
+    background: linear-gradient(135deg, #fff, oklch(0.85 0.08 280));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+
+  .swd-history-item {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:.5rem .65rem;
+    border-radius:.6rem;
+    background: oklch(0.18 0.01 260 / .55);
+    border: 1px solid oklch(0.26 0.02 260);
+  }
+  .swd-history-item + .swd-history-item { margin-top:.35rem; }
+  .swd-delta-up   { color: oklch(.78 .15 145); }
+  .swd-delta-down { color: oklch(.72 .15 30); }
+  .swd-delta-flat { opacity:.55; }
+
+  .swd-alt {
+    display:inline-flex; align-items:center; gap:.4rem;
+    padding:.35rem .65rem;
+    background: oklch(0.2 0.02 260);
+    border: 1px solid oklch(0.32 0.03 280);
+    border-radius: 999px;
+    font-size:.78rem;
+  }
+  .swd-alt svg { width: 14px; height: 14px; opacity:.6; }
+</style>
+
+<div class="mb-5">
+  <a href="{% url 'student-workout-list' %}" class="text-sm opacity-60 hover:opacity-100 transition inline-flex items-center gap-1">
     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-    Back to workouts
+    Voltar para treinos
   </a>
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-    <div>
-      <h1 class="text-2xl sm:text-3xl font-extrabold">{{ workout.name }}</h1>
-      <p class="opacity-50 mt-1 text-sm sm:text-base">{{ workout.plan.name|default:"Standalone workout" }}{% if workout.objective %} · {{ workout.objective }}{% endif %}</p>
-    </div>
-    <span class="badge {% if can_update_loads %}badge-success{% else %}badge-warning{% endif %} badge-lg">
-      {% if can_update_loads %}Voce pode atualizar cargas{% else %}Ajustes com aprovacao{% endif %}
-    </span>
-  </div>
 </div>
 
-<div class="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mb-6">
-  <div class="bg-base-100 rounded-2xl border border-base-300 p-4">
-    <p class="opacity-50 text-xs">Professor</p>
-    {% if workout.athlete.has_active_trainer %}
-      <p class="font-semibold mt-1">{{ workout.athlete.trainer.get_full_name|default:workout.athlete.trainer.username }}</p>
-    {% else %}
-      <p class="font-semibold mt-1">Independente</p>
-    {% endif %}
-  </div>
-  <div class="bg-base-100 rounded-2xl border border-base-300 p-4"><p class="opacity-50 text-xs">Exercises</p><p class="font-semibold mt-1">{{ workout.exercises.count }}</p></div>
-  <div class="bg-base-100 rounded-2xl border border-base-300 p-4"><p class="opacity-50 text-xs">Plan</p><p class="font-semibold mt-1">{{ workout.plan.name|default:"No plan" }}</p></div>
-  <div class="bg-base-100 rounded-2xl border border-base-300 p-4"><p class="opacity-50 text-xs">Updated</p><p class="font-semibold mt-1">{{ workout.updated_at|date:"d/m/Y H:i" }}</p></div>
-</div>
+{# ===== HERO ===== #}
+<section class="swd-hero mb-6">
+  <div class="relative z-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+    <div class="min-w-0">
+      <div class="flex flex-wrap items-center gap-2 mb-3">
+        {% if workout.origin == 'self_created' %}
+          <span class="badge badge-info badge-sm gap-1">
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Treino próprio
+          </span>
+        {% else %}
+          <span class="badge badge-primary badge-sm gap-1">
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            Prescrito pelo professor
+          </span>
+        {% endif %}
+        {% if workout.is_active %}
+          <span class="badge badge-success badge-sm">Ativo</span>
+        {% else %}
+          <span class="badge badge-ghost badge-sm">Inativo</span>
+        {% endif %}
+        <span class="badge {% if can_update_loads %}badge-success{% else %}badge-warning{% endif %} badge-sm">
+          {% if can_update_loads %}Você pode ajustar cargas{% else %}Cargas com aprovação{% endif %}
+        </span>
+      </div>
 
-<div class="space-y-4">
-  {% for exercise in workout.exercises.all %}
-    <div class="bg-base-100 rounded-2xl border border-base-300 p-5">
-      <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 flex-wrap mb-2">
-            <h2 class="font-bold text-lg">{{ exercise.display_name }}</h2>
-            {% if exercise.muscle_group_label %}<span class="badge badge-ghost badge-sm">{{ exercise.muscle_group_label }}</span>{% endif %}
-            {% if exercise.equipment_label %}<span class="badge badge-ghost badge-sm">{{ exercise.equipment_label }}</span>{% endif %}
-          </div>
-          <p class="text-sm opacity-70">{{ exercise.sets }}x{{ exercise.reps }} · Rest {{ exercise.rest_seconds }}s</p>
-          {% if exercise.notes %}<p class="text-sm mt-2">{{ exercise.notes }}</p>{% endif %}
-          <p class="text-sm mt-3"><span class="opacity-50">Current load:</span> <span class="font-semibold">{{ exercise.current_load_kg|default:"-" }}{% if exercise.current_load_kg %} kg{% endif %}</span></p>
+      <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">{{ workout.name }}</h1>
+      {% if workout.plan %}
+        <p class="text-sm opacity-70 mt-1">
+          <svg class="w-4 h-4 inline -mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          {{ workout.plan.name }}
+        </p>
+      {% endif %}
+      {% if workout.objective %}
+        <p class="mt-3 text-sm sm:text-base opacity-90 max-w-2xl">{{ workout.objective }}</p>
+      {% endif %}
 
-          {% if exercise.alternatives.all %}
-            <div class="mt-4">
-              <p class="text-xs uppercase tracking-wide opacity-50 mb-2">Suggested alternatives</p>
-              <div class="flex flex-wrap gap-2">
-                {% for alternative in exercise.alternatives.all %}
-                  <span class="badge badge-outline gap-1">{{ alternative.exercise_ref.name }}{% if alternative.notes %} · {{ alternative.notes }}{% endif %}</span>
-                {% endfor %}
-              </div>
-            </div>
-          {% endif %}
-        </div>
-
-        <div class="lg:w-80 w-full rounded-xl bg-base-200 p-4">
-          <p class="font-semibold text-sm mb-3">Log progression</p>
-          {% if can_update_loads %}
-            <form method="post" action="{% url 'student-exercise-load-update' workout.pk exercise.pk %}" class="space-y-3">
-              {% csrf_token %}
-              <fieldset class="fieldset">
-                <legend class="fieldset-legend">New load (kg)</legend>
-                <input class="input input-sm w-full" type="number" step="0.01" min="0" name="new_load_kg" required>
-              </fieldset>
-              <fieldset class="fieldset">
-                <legend class="fieldset-legend">Note</legend>
-                <input class="input input-sm w-full" type="text" name="reason" placeholder="Example: stable execution, full reps">
-              </fieldset>
-              <button class="btn btn-primary btn-sm w-full" type="submit">Save my load</button>
-            </form>
-          {% else %}
-            <p class="text-sm opacity-70">Este treino exige aprovacao do professor para ajustes de carga.</p>
-          {% endif %}
-          <div class="mt-4">
-            <p class="text-xs uppercase tracking-wide opacity-50 mb-2">Latest entries</p>
-            {% for update in exercise.load_updates.all|slice:":3" %}
-              <div class="flex items-center justify-between text-sm py-1">
-                <span>{{ update.created_at|date:"d/m H:i" }}</span>
-                <span class="font-semibold">{{ update.new_load_kg }} kg</span>
-              </div>
-            {% empty %}
-              <p class="text-sm opacity-60">No entries yet.</p>
-            {% endfor %}
-          </div>
-        </div>
+      <div class="mt-4 flex flex-wrap items-center gap-3 text-xs opacity-70">
+        {% if workout.athlete.has_active_trainer %}
+          <span class="inline-flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A8.969 8.969 0 0112 15a8.969 8.969 0 016.879 2.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Professor: <span class="font-semibold opacity-100">{{ workout.athlete.trainer.get_full_name|default:workout.athlete.trainer.username }}</span>
+          </span>
+        {% else %}
+          <span class="inline-flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            Treino independente
+          </span>
+        {% endif %}
+        <span class="inline-flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Atualizado {{ workout.updated_at|date:"d/m/Y" }}
+        </span>
       </div>
     </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 lg:max-w-xl lg:w-auto w-full relative z-10">
+      <div class="swd-stat">
+        <div class="label">Exercícios</div>
+        <div class="value">{{ stats.exercise_count }}</div>
+      </div>
+      <div class="swd-stat">
+        <div class="label">Séries</div>
+        <div class="value">{{ stats.total_sets }}</div>
+        <div class="hint">total</div>
+      </div>
+      <div class="swd-stat">
+        <div class="label">Duração</div>
+        <div class="value">~{{ stats.estimated_minutes }}<span class="text-xs opacity-60 font-bold"> min</span></div>
+      </div>
+      <div class="swd-stat">
+        <div class="label">Volume</div>
+        <div class="value">{{ stats.total_load_kg }}<span class="text-xs opacity-60 font-bold"> kg</span></div>
+        <div class="hint">carga × séries</div>
+      </div>
+    </div>
+  </div>
+
+  {% if stats.muscle_groups %}
+    <div class="relative z-10 mt-5 flex flex-wrap items-center gap-2">
+      <span class="text-[.7rem] uppercase tracking-wider opacity-50">Músculos</span>
+      {% for muscle in stats.muscle_groups %}
+        <span class="badge badge-outline badge-sm">{{ muscle }}</span>
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+
+{# ===== EXERCISES ===== #}
+<div class="space-y-4">
+  {% for exercise in workout.exercises.all %}
+    <article class="swd-exercise">
+      <div class="grid lg:grid-cols-[1fr_320px]">
+        {# --- LEFT: exercise content --- #}
+        <div class="p-5 lg:p-6">
+          <div class="flex items-start gap-3">
+            <span class="swd-num">{{ forloop.counter }}</span>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-start gap-3">
+                {% if exercise.image %}
+                  <img src="{{ exercise.image.url }}" alt="{{ exercise.display_name }}" class="w-14 h-14 rounded-xl object-cover border border-base-300 shrink-0">
+                {% endif %}
+                <div class="min-w-0 flex-1">
+                  <h2 class="font-bold text-lg sm:text-xl">{{ exercise.display_name }}</h2>
+                  <div class="flex items-center gap-2 flex-wrap mt-1">
+                    {% if exercise.muscle_group_label %}
+                      <span class="badge badge-ghost badge-sm">
+                        <svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        {{ exercise.muscle_group_label }}
+                      </span>
+                    {% endif %}
+                    {% if exercise.equipment_label %}
+                      <span class="badge badge-ghost badge-sm">{{ exercise.equipment_label }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-2 mt-4">
+                <div class="swd-mini">
+                  <div class="k">Séries</div>
+                  <div class="v">{{ exercise.sets }}</div>
+                </div>
+                <div class="swd-mini">
+                  <div class="k">Reps</div>
+                  <div class="v">{{ exercise.reps }}</div>
+                </div>
+                <div class="swd-mini">
+                  <div class="k">Descanso</div>
+                  <div class="v">{{ exercise.rest_seconds }}<span class="text-xs opacity-50 font-bold"> s</span></div>
+                </div>
+              </div>
+
+              {% if exercise.notes %}
+                <div class="mt-4 rounded-xl border border-base-300 bg-base-200/60 p-3 text-sm">
+                  <div class="text-[.7rem] uppercase tracking-wider opacity-55 mb-1">Observação do professor</div>
+                  {{ exercise.notes }}
+                </div>
+              {% endif %}
+
+              {% if exercise.exercise_ref.tips %}
+                <details class="mt-3 group">
+                  <summary class="cursor-pointer text-sm font-semibold opacity-80 hover:opacity-100 inline-flex items-center gap-1 select-none">
+                    <svg class="w-4 h-4 transition group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    Dicas de execução
+                  </summary>
+                  <p class="mt-2 text-sm opacity-80 pl-5">{{ exercise.exercise_ref.tips }}</p>
+                </details>
+              {% endif %}
+
+              {% if exercise.alternatives.all %}
+                <div class="mt-4">
+                  <div class="text-[.7rem] uppercase tracking-wider opacity-55 mb-2">Alternativas sugeridas</div>
+                  <div class="flex flex-wrap gap-2">
+                    {% for alternative in exercise.alternatives.all %}
+                      <span class="swd-alt">
+                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                        {{ alternative.exercise_ref.name }}{% if alternative.notes %} · <span class="opacity-70">{{ alternative.notes }}</span>{% endif %}
+                      </span>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        {# --- RIGHT: load + history --- #}
+        <aside class="p-5 lg:p-6 lg:border-l border-t lg:border-t-0 border-base-300 bg-base-200/30">
+          <div class="swd-load mb-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-[.7rem] uppercase tracking-wider opacity-70">Carga atual</div>
+                <div class="v mt-1">
+                  {% if exercise.current_load_kg %}{{ exercise.current_load_kg }}<span class="text-base opacity-70 font-bold"> kg</span>{% else %}—{% endif %}
+                </div>
+              </div>
+              <svg class="w-10 h-10 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6.5 6.5l11 11M9 3l3 3-3 3M3 9l3 3-3 3M21 15l-3-3 3-3M15 21l-3-3 3-3"/></svg>
+            </div>
+          </div>
+
+          {% if can_update_loads %}
+            <form method="post" action="{% url 'student-exercise-load-update' workout.pk exercise.pk %}" class="space-y-2">
+              {% csrf_token %}
+              <label class="block">
+                <span class="text-[.7rem] uppercase tracking-wider opacity-55">Nova carga (kg)</span>
+                <input class="input input-bordered input-sm w-full mt-1" type="number" step="0.01" min="0" name="new_load_kg" placeholder="Ex.: 22.5" required>
+              </label>
+              <label class="block">
+                <span class="text-[.7rem] uppercase tracking-wider opacity-55">Nota (opcional)</span>
+                <input class="input input-bordered input-sm w-full mt-1" type="text" name="reason" placeholder="Ex.: execução estável, reps completas">
+              </label>
+              <button class="btn btn-primary btn-sm w-full gap-1" type="submit">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                Registrar carga
+              </button>
+            </form>
+          {% else %}
+            <div class="rounded-xl border border-warning/30 bg-warning/5 p-3 text-xs leading-relaxed">
+              <div class="font-semibold mb-1 inline-flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5 19h14a2 2 0 001.84-2.75L13.74 4a2 2 0 00-3.48 0L3.16 16.25A2 2 0 005 19z"/></svg>
+                Cargas controladas
+              </div>
+              <span class="opacity-80">Este treino exige aprovação do professor para ajustes de carga.</span>
+            </div>
+          {% endif %}
+
+          <div class="mt-5">
+            <div class="text-[.7rem] uppercase tracking-wider opacity-55 mb-2">Últimos registros</div>
+            {% for update in exercise.load_updates.all|slice:":4" %}
+              <div class="swd-history-item">
+                <div class="text-xs opacity-70">{{ update.created_at|date:"d/m H:i" }}</div>
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-semibold">{{ update.new_load_kg }} kg</span>
+                  {% if update.previous_load_kg %}
+                    {% if update.new_load_kg > update.previous_load_kg %}
+                      <span class="text-[.7rem] swd-delta-up inline-flex items-center">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                      </span>
+                    {% elif update.new_load_kg < update.previous_load_kg %}
+                      <span class="text-[.7rem] swd-delta-down inline-flex items-center">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                      </span>
+                    {% else %}
+                      <span class="text-[.7rem] swd-delta-flat">=</span>
+                    {% endif %}
+                  {% endif %}
+                </div>
+              </div>
+            {% empty %}
+              <p class="text-sm opacity-60">Nenhum registro ainda.</p>
+            {% endfor %}
+          </div>
+        </aside>
+      </div>
+    </article>
   {% empty %}
-    <div class="bg-base-100 rounded-2xl border border-base-300 p-8 text-center">
-      <p class="font-semibold mb-2">No exercises in this workout yet</p>
-      <p class="text-sm opacity-60">Adicione exercicios ou peca ajuda da IA para estruturar este treino.</p>
+    <div class="bg-base-100 rounded-2xl border border-base-300 p-10 text-center">
+      <div class="mx-auto w-12 h-12 rounded-full bg-base-200 flex items-center justify-center mb-3">
+        <svg class="w-6 h-6 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/></svg>
+      </div>
+      <p class="font-semibold mb-1">Nenhum exercício neste treino ainda</p>
+      <p class="text-sm opacity-60">Adicione exercícios ou peça ajuda da IA para estruturar este treino.</p>
     </div>
   {% endfor %}
 </div>
