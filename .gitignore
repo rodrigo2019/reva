@@ -1,0 +1,79 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+/staticfiles/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Coverage / Testing
+.coverage
+htmlcov/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+
+# Separate projects / submodules
+broccoli/
+
+# Temporary test and utility scripts (development artifacts)
+GO.py
+RUN_VALIDATION.py
+STATIC_VALIDATION_REPORT.py
+VALIDATE_NOW.py
+check_and_run.py
+direct_test.py
+do_validate.py
+exec_test_now.py
+exec_validation.py
+exec_validation_now.py
+exec_via_runpy.py
+final_validate.py
+final_validation.py
+git_commit.py
+inline_exec.py
+inline_test.py
+minimal_run.py
+quick_test.py
+run_tests_now.py
+run_validation_simple.py
+simple_validate.py
+static_analysis.py
+test_exec.py
+test_import.py
+validate_refactor.py
+validate_tools.py
+validate_tools_refactor.py
+validate_tools_v2.py
+run_test.cmd
+run_test_now.bat
+run_validation.bat
+validate.bat
+test_results.txt
